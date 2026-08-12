@@ -165,17 +165,21 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => setActiveTab(userRole === 'moderator' ? 'news' : 'home')}
         >
           {/* Favicon / Small Icon */}
-          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full p-0.5 flex items-center justify-center shadow-xs border border-emerald-500/30 shrink-0 overflow-hidden">
-            <img src={siteFavicon || siteLogo} alt="Favicon" className="w-full h-full object-cover rounded-full" />
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full p-0.5 flex items-center justify-center shadow-xs border border-emerald-500/30 shrink-0 overflow-hidden bg-transparent">
+            <img
+              src={siteFavicon || siteLogo}
+              alt="Favicon"
+              className="w-full h-full object-cover rounded-full bg-transparent"
+            />
           </div>
 
           {/* Main Logo Image in place of text */}
           {siteLogo ? (
-            <div className="flex items-center">
+            <div className="flex items-center bg-transparent">
               <img
                 src={siteLogo}
                 alt="hellomorrelgonj logo"
-                className="h-9 sm:h-11 md:h-13 lg:h-14 w-auto max-w-[200px] sm:max-w-[300px] md:max-w-[400px] object-contain rounded-md"
+                className="h-9 sm:h-11 md:h-13 lg:h-14 w-auto max-w-[200px] sm:max-w-[300px] md:max-w-[400px] object-contain rounded-md bg-transparent"
               />
             </div>
           ) : (
