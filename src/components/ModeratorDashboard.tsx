@@ -31,7 +31,8 @@ import {
   ChevronUp,
   Bus,
   Globe,
-  Upload
+  Upload,
+  Share2
 } from 'lucide-react';
 
 import {
@@ -43,7 +44,8 @@ import {
   ModeratorPermissions,
   BusSchedule,
   TicketCounter,
-  UpazilaRegion
+  UpazilaRegion,
+  FacebookSettings
 } from '../types';
 import { MORRELGANJ_UPAZILA_INFO } from '../data/morrelgonjRegionData';
 import { BusScheduleView } from './BusScheduleView';
@@ -73,6 +75,7 @@ interface ModeratorDashboardProps {
   activeTab?: string;
   setActiveTab?: (tab: string) => void;
   moderatorPermissions?: ModeratorPermissions;
+  facebookSettings?: FacebookSettings;
 }
 
 export const ModeratorDashboard: React.FC<ModeratorDashboardProps> = ({
@@ -104,7 +107,8 @@ export const ModeratorDashboard: React.FC<ModeratorDashboardProps> = ({
     canManageHospitals: true,
     canManageAmbulances: true,
     canManageOffices: true
-  }
+  },
+  facebookSettings = { pageId: '', pageAccessToken: '', autoPostEnabled: true }
 }) => {
   // Navigation active tab: 'map3d' | 'news' | 'donors' | 'hospitals' | 'ambulances' | 'offices' | 'buses'
   type ModTabType = 'map3d' | 'news' | 'donors' | 'hospitals' | 'ambulances' | 'offices' | 'buses';
@@ -201,6 +205,8 @@ export const ModeratorDashboard: React.FC<ModeratorDashboardProps> = ({
   const [newContent, setNewContent] = useState('');
   const [newImageUrl, setNewImageUrl] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
+  const [autoPostToFacebook, setAutoPostToFacebook] = useState(true);
+  const [postingToFbId, setPostingToFbId] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -413,6 +419,39 @@ export const ModeratorDashboard: React.FC<ModeratorDashboardProps> = ({
     alert('সংবাদ সংশোধনের অনুরোধটি এডমিন (Admin) অনুমোদনের জন্য সফলভাবে পাঠানো হয়েছে!');
   };
 
+  const handlePostNewsToFacebook = async (news: NewsItem) => {
+    setPostingToFbId(news.id);
+    try {
+      const res = await fetch('/api/facebook/post-news', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: news.title,
+          summary: news.summary,
+          category: news.category,
+          imageUrl: news.imageUrl,
+          newsId: news.id,
+          pageId: facebookSettings?.pageId,
+          pageAccessToken: facebookSettings?.pageAccessToken
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        addLog('ফেসবুক অটো-পোস্ট', `সংবাদটি ("${news.title}") ফেসবুক পেজে পোস্ট করা হয়েছে। (ID: ${data.postId})`);
+        alert(`✅ "${news.title}" সংবাদটি সফলভাবে ফেসবুক পেজে পোস্ট করা হয়েছে! (Post ID: ${data.postId})`);
+      } else if (data.configured === false) {
+        alert('ℹ️ সংবাদটি পোর্টালে প্রকাশিত হয়েছে। (নোট: এডমিন প্যানেল থেকে ফেসবুক পেজ আইডি ও এক্সেস টোকেন সেভ করা থাকলে স্বয়ংক্রিয়ভাবে পেজে পোস্ট হয়ে যেত)');
+      } else {
+        alert(`⚠️ পোর্টালে প্রকাশ হয়েছে, তবে ফেসবুকে পোস্ট করতে ব্যর্থ: ${data.error || 'অজানা ত্রুটি'}`);
+      }
+    } catch (err: any) {
+      console.error('Facebook post trigger error:', err);
+      alert(`⚠️ পোর্টালে প্রকাশ হয়েছে, তবে ফেসবুকে পোস্ট পাঠানো সম্ভব হয়নি: ${err.message || ''}`);
+    } finally {
+      setPostingToFbId(null);
+    }
+  };
+
   const handlePublishNewsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -445,6 +484,11 @@ export const ModeratorDashboard: React.FC<ModeratorDashboardProps> = ({
 
     setNewsList((prev) => [publishedItem, ...prev]);
     addLog('মডারেটর সংবাদ সরাসরি প্রকাশ', `শিরোনাম: "${newTitle.trim()}" (${finalAuthor})`);
+
+    // Auto-post to Facebook if toggled
+    if (autoPostToFacebook) {
+      handlePostNewsToFacebook(publishedItem);
+    }
 
     // Reset Form
     setNewTitle('');
@@ -725,8 +769,18 @@ export const ModeratorDashboard: React.FC<ModeratorDashboardProps> = ({
                       ) : (
                         <>
                           <button
+                            disabled={postingToFbId === news.id}
+                            onClick={() => handlePostNewsToFacebook(news)}
+                            className="px-2.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-800 text-xs font-bold rounded-lg border border-sky-300 transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                            title="এই সংবাদটি ফেসবুক পেজে অটো-পোস্ট করুন"
+                          >
+                            <Share2 className="w-3.5 h-3.5 text-sky-600" />
+                            <span>{postingToFbId === news.id ? 'পোস্ট হচ্ছে...' : 'ফেসবুকে পোস্ট'}</span>
+                          </button>
+
+                          <button
                             onClick={() => handleOpenEditModal(news)}
-                            className="px-2.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-bold rounded-lg border border-sky-200 transition-colors flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
                             title="সংবাদ পরিবর্তন করুন (এডমিন অনুমোদন সাপেক্ষ)"
                           >
                             <Edit className="w-3.5 h-3.5" />
@@ -1232,6 +1286,26 @@ export const ModeratorDashboard: React.FC<ModeratorDashboardProps> = ({
                 <label htmlFor="isFeaturedMod" className="text-xs font-bold text-slate-800 cursor-pointer">
                   প্রধান ফিচারে (Featured Carousel) এই সংবাদ প্রদর্শন করুন
                 </label>
+              </div>
+
+              {/* Facebook Auto-Post Option */}
+              <div className="bg-sky-50 border border-sky-200 p-3 rounded-xl space-y-1">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="autoPostFb"
+                    checked={autoPostToFacebook}
+                    onChange={(e) => setAutoPostToFacebook(e.target.checked)}
+                    className="w-4 h-4 text-sky-600 rounded focus:ring-sky-500 cursor-pointer"
+                  />
+                  <label htmlFor="autoPostFb" className="text-xs font-black text-sky-950 cursor-pointer flex items-center gap-1.5">
+                    <Share2 className="w-4 h-4 text-sky-600" />
+                    <span>অফিসিয়াল ফেসবুক পেজেও অটো-পোস্ট (Auto-Post to Facebook Page)</span>
+                  </label>
+                </div>
+                <p className="text-[11px] text-sky-800 pl-6">
+                  সংবাদটি পোর্টালে প্রকাশিত হওয়ার সাথে সাথেই অটোমেটিক ফেসবুক পেজে ছবি ও ক্যাপশন সহ পোস্ট হবে।
+                </p>
               </div>
 
               <div className="pt-2">

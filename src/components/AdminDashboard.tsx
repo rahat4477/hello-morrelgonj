@@ -36,7 +36,9 @@ import {
   Flame,
   ShieldAlert,
   Zap,
-  Bus
+  Bus,
+  Share2,
+  HelpCircle
 } from 'lucide-react';
 import {
   NewsItem,
@@ -54,7 +56,8 @@ import {
   EmergencyHelpline,
   BusSchedule,
   TicketCounter,
-  UpazilaRegion
+  UpazilaRegion,
+  FacebookSettings
 } from '../types';
 import { saveToFirestore, deleteFromFirestore } from '../lib/useFirestoreSync';
 import { compressImage } from '../utils/imageUtils';
@@ -96,6 +99,8 @@ interface AdminDashboardProps {
   setSiteLogo?: (logo: string) => void;
   siteFavicon?: string;
   setSiteFavicon?: (favicon: string) => void;
+  facebookSettings?: FacebookSettings;
+  setFacebookSettings?: React.Dispatch<React.SetStateAction<FacebookSettings>>;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -132,9 +137,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   siteLogo = '/logo.jpg',
   setSiteLogo,
   siteFavicon = '/logo.jpg',
-  setSiteFavicon
+  setSiteFavicon,
+  facebookSettings = { pageId: '', pageAccessToken: '', autoPostEnabled: true, pageName: '', pageFollowers: 0 },
+  setFacebookSettings
 }) => {
-  type AdminTabType = 'map3d' | 'pending' | 'moderators' | 'branding' | 'helplines' | 'donors' | 'news' | 'hospitals' | 'doctors' | 'offices' | 'ambulances' | 'buses' | 'logs';
+  type AdminTabType = 'map3d' | 'pending' | 'moderators' | 'branding' | 'facebook' | 'helplines' | 'donors' | 'news' | 'hospitals' | 'doctors' | 'offices' | 'ambulances' | 'buses' | 'logs';
   const [internalAdminTab, setInternalAdminTab] = useState<AdminTabType>('pending');
   const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
 
@@ -246,6 +253,74 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setBrandingNotice('ফ্যাবআইকন ডিফল্ট ইমেজে রিসেট করা হয়েছে!');
       setTimeout(() => setBrandingNotice(null), 4000);
     }
+  };
+
+  // Local state for Facebook Auto-Post Settings
+  const [fbPageId, setFbPageId] = useState(facebookSettings.pageId || '');
+  const [fbAccessToken, setFbAccessToken] = useState(facebookSettings.pageAccessToken || '');
+  const [fbAutoPostEnabled, setFbAutoPostEnabled] = useState(facebookSettings.autoPostEnabled ?? true);
+  const [fbVerifying, setFbVerifying] = useState(false);
+  const [fbVerifyResult, setFbVerifyResult] = useState<{ name: string; id: string; followers: number; picture: string } | null>(null);
+  const [fbVerifyError, setFbVerifyError] = useState<string | null>(null);
+  const [fbNotice, setFbNotice] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (facebookSettings) {
+      if (facebookSettings.pageId && !fbPageId) setFbPageId(facebookSettings.pageId);
+      if (facebookSettings.pageAccessToken && !fbAccessToken) setFbAccessToken(facebookSettings.pageAccessToken);
+      if (facebookSettings.autoPostEnabled !== undefined) setFbAutoPostEnabled(facebookSettings.autoPostEnabled);
+    }
+  }, [facebookSettings]);
+
+  const handleVerifyFacebookConnection = async () => {
+    if (!fbPageId.trim() || !fbAccessToken.trim()) {
+      alert('অনুগ্রহ করে ফেসবুক পেজ আইডি এবং এক্সেস টোকেন দুইটাই পূরণ করুন।');
+      return;
+    }
+    setFbVerifying(true);
+    setFbVerifyError(null);
+    setFbVerifyResult(null);
+
+    try {
+      const res = await fetch('/api/facebook/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pageId: fbPageId.trim(),
+          pageAccessToken: fbAccessToken.trim()
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.page) {
+        setFbVerifyResult(data.page);
+        setFbNotice('✅ ফেসবুক পেজের সাথে সফলভাবে কানেকশন নিশ্চিত করা হয়েছে!');
+      } else {
+        setFbVerifyError(data.error || 'ফেসবুক টোকেন দিয়ে পেজে সংযোগ সম্ভব হয়নি।');
+      }
+    } catch (err: any) {
+      setFbVerifyError('ফেসবুক সার্ভারের সাথে যোগাযোগ করতে সমস্যা হয়েছে: ' + (err.message || ''));
+    } finally {
+      setFbVerifying(false);
+    }
+  };
+
+  const handleSaveFacebookSettings = () => {
+    const updated: FacebookSettings = {
+      pageId: fbPageId.trim(),
+      pageAccessToken: fbAccessToken.trim(),
+      autoPostEnabled: fbAutoPostEnabled,
+      pageName: fbVerifyResult?.name || facebookSettings.pageName || '',
+      pageFollowers: fbVerifyResult?.followers || facebookSettings.pageFollowers || 0,
+      lastVerifiedAt: new Date().toISOString()
+    };
+
+    if (setFacebookSettings) {
+      setFacebookSettings(updated);
+    }
+    saveToFirestore('facebook_settings', { id: 'config', ...updated });
+    addLog('ফেসবুক অটো-পোস্ট কনফিগারেশন', `ফেসবুক পেজ আইডি ${fbPageId.trim()} সফলভাবে সেভ করা হয়েছে।`);
+    setFbNotice('✅ ফেসবুক পেজ অটো-পোস্টিং সেটিংস সফলভাবে স্থায়ীভাবে সেভ করা হয়েছে!');
+    setTimeout(() => setFbNotice(null), 5000);
   };
 
   // Local state for Helpline Control
@@ -647,6 +722,41 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setNewDonorVillage('');
   };
 
+  // Facebook Post trigger for Admin
+  const [adminPostingToFbId, setAdminPostingToFbId] = useState<string | null>(null);
+
+  const handlePostNewsToFacebookAdmin = async (news: NewsItem) => {
+    setAdminPostingToFbId(news.id);
+    try {
+      const res = await fetch('/api/facebook/post-news', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: news.title,
+          summary: news.summary,
+          category: news.category,
+          imageUrl: news.imageUrl,
+          newsId: news.id,
+          pageId: facebookSettings?.pageId || fbPageId,
+          pageAccessToken: facebookSettings?.pageAccessToken || fbAccessToken
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        addLog('ফেসবুক অটো-পোস্ট', `সংবাদটি ("${news.title}") ফেসবুক পেজে সরাসরি পোস্ট করা হয়েছে। (ID: ${data.postId})`);
+        alert(`✅ "${news.title}" সংবাদটি সফলভাবে ফেসবুক পেজে পোস্ট করা হয়েছে! (Post ID: ${data.postId})`);
+      } else if (data.configured === false) {
+        alert('⚠️ ফেসবুক পেজ টোকেন সেভ করা হয়নি। অনুগ্রহ করে "ফেসবুক পেজ অটো-পোস্টিং" ট্যাব থেকে পেজ আইডি ও এক্সেস টোকেন সেভ করুন।');
+      } else {
+        alert(`⚠️ ফেসবুক পেজে পোস্ট করতে সমস্যা হয়েছে: ${data.error || 'অজানা ত্রুটি'}`);
+      }
+    } catch (err: any) {
+      alert(`⚠️ ফেসবুক সার্ভারে বার্তা পাঠানো ব্যর্থ: ${err.message || ''}`);
+    } finally {
+      setAdminPostingToFbId(null);
+    }
+  };
+
   // Create News as Admin
   const handleAdminAddNews = (e: React.FormEvent) => {
     e.preventDefault();
@@ -668,6 +778,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
     setNewsList((prev) => [newArticle, ...prev]);
     addLog('নতুন সংবাদ প্রকাশ', `এডমিন শিরোনামে নিবন্ধ প্রকাশ করেছেন: "${newsTitle}"`);
+
+    if (fbAutoPostEnabled) {
+      handlePostNewsToFacebookAdmin(newArticle);
+    }
 
     setNewsTitle('');
     setNewsSummary('');
@@ -1393,6 +1507,190 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ----------------- ADMIN TAB: FACEBOOK AUTO-POST INTEGRATION ----------------- */}
+      {adminTab === 'facebook' && (
+        <div className="space-y-6">
+          {/* Header Card */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+                    <Share2 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-lg text-slate-900">
+                      ফেসবুক পেজ অটো-পোস্টিং ইন্টিগ্রেশন
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      মডারেটর ও এডমিনগণ পোর্টালে নতুন সংবাদ প্রকাশ করার সাথে সাথে তা স্বয়ংক্রিয়ভাবে আপনার অফিসিয়াল ফেসবুক পেজে পোস্ট হবে।
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {fbVerifyResult && (
+                <div className="flex items-center gap-3 bg-sky-50 border border-sky-200 p-2.5 rounded-xl">
+                  {fbVerifyResult.picture ? (
+                    <img src={fbVerifyResult.picture} alt="Page Logo" className="w-10 h-10 rounded-full border border-sky-300 object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-sky-600 text-white font-bold flex items-center justify-center text-sm">FB</div>
+                  )}
+                  <div>
+                    <p className="font-extrabold text-xs text-sky-950">{fbVerifyResult.name}</p>
+                    <p className="text-[11px] text-sky-700 font-medium">কানেক্টেড (ফলোয়ার: {fbVerifyResult.followers?.toLocaleString('bn-BD') || 0} জন)</p>
+                  </div>
+                  <span className="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full ml-2">সক্রিয়</span>
+                </div>
+              )}
+            </div>
+
+            {fbNotice && (
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 p-3.5 rounded-xl text-xs font-bold flex items-center gap-2 animate-in fade-in duration-200">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                <span>{fbNotice}</span>
+              </div>
+            )}
+
+            {fbVerifyError && (
+              <div className="bg-rose-50 border border-rose-200 text-rose-900 p-3.5 rounded-xl text-xs font-bold flex items-center gap-2 animate-in fade-in duration-200">
+                <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+                <span>{fbVerifyError}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Configuration Form */}
+            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-sky-600" />
+                  <span>ফেসবুক গ্রাফ এপিআই (Graph API) ক্রেডেনশিয়াল সেটিং</span>
+                </h4>
+                <span className="text-[10px] font-extrabold bg-sky-100 text-sky-800 px-2.5 py-1 rounded-lg">
+                  Facebook Page API v19.0
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                {/* Page ID */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-800 flex items-center justify-between">
+                    <span>১. ফেসবুক পেজ আইডি (Facebook Page ID):</span>
+                    <span className="text-[10px] text-slate-400 font-normal">যেমন: 100083920192841</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={fbPageId}
+                    onChange={(e) => setFbPageId(e.target.value)}
+                    placeholder="আপনার ফেসবুক পেজের Numeric ID লিখুন"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-xs font-mono"
+                  />
+                </div>
+
+                {/* Page Access Token */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-800 flex items-center justify-between">
+                    <span>২. ফেসবুক পেজ এক্সেস টোকেন (Page Access Token):</span>
+                    <span className="text-[10px] text-slate-400 font-normal">Never Expire / Long-Lived Token</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={fbAccessToken}
+                    onChange={(e) => setFbAccessToken(e.target.value)}
+                    placeholder="EAAG... দিয়ে শুরু হওয়া দীর্ঘ ফেসবুক পেজ এক্সেস টোকেন পেস্ট করুন"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-xs font-mono"
+                  />
+                </div>
+
+                {/* Default Auto-Post Toggle */}
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-extrabold text-xs text-slate-900">সংবাদ প্রকাশের সাথে অটো-পোস্ট সক্রিয় থাকবে</p>
+                    <p className="text-[11px] text-slate-500">
+                      মডারেটর যখনই কোনো নতুন সংবাদ পাবলিশ করবে, তা ডিফল্টভাবে ফেসবুক পেজেও পোস্ট হয়ে যাবে
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFbAutoPostEnabled(!fbAutoPostEnabled)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                      fbAutoPostEnabled ? 'bg-emerald-500' : 'bg-slate-300'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                        fbAutoPostEnabled ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Buttons */}
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    disabled={fbVerifying}
+                    onClick={handleVerifyFacebookConnection}
+                    className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 disabled:bg-slate-400 text-white font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-xs transition-all"
+                  >
+                    {fbVerifying ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>যাচাই করা হচ্ছে...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>প্লাগইন কানেকশন পরীক্ষা করুন (Test Connection)</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSaveFacebookSettings}
+                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-xs transition-all"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>কনফিগারেশন সেভ করুন</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Instruction Side Card */}
+            <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-md space-y-4 border border-slate-800">
+              <div className="flex items-center gap-2 text-amber-400 border-b border-slate-800 pb-3">
+                <HelpCircle className="w-5 h-5 shrink-0" />
+                <h4 className="font-extrabold text-sm text-white">কিভাবে পেজ টোকেন ও আইডি পাবেন?</h4>
+              </div>
+
+              <ul className="space-y-3 text-xs text-slate-300 leading-relaxed list-disc pl-4">
+                <li>
+                  <strong className="text-white">১. Graph API Explorer:</strong> Facebook Meta for Developers (developers.facebook.com) এ লগইন করে Graph API Explorer এ যান।
+                </li>
+                <li>
+                  <strong className="text-white">২. পারমিশন সিলেক্ট করুন:</strong> <code className="bg-slate-800 text-amber-300 px-1 py-0.5 rounded">pages_manage_posts</code> এবং <code className="bg-slate-800 text-amber-300 px-1 py-0.5 rounded">pages_read_engagement</code> পারমিশন যুক্ত করে Get User Access Token নিন।
+                </li>
+                <li>
+                  <strong className="text-white">৩. Page Token জেনারেট:</strong> User Token থেকে আপনার ফেসবুক পেজ সিলেক্ট করলে দীর্ঘমেয়াদী <strong className="text-sky-300">Page Access Token</strong> পাবেন।
+                </li>
+                <li>
+                  <strong className="text-white">৪. পেজ আইডি:</strong> আপনার ফেসবুক পেজের About সেকশন থেকে Page ID কপি করে বসান।
+                </li>
+              </ul>
+
+              <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-[11px] text-slate-300 space-y-1">
+                <p className="font-bold text-amber-300">💡 অটো-পোস্টিং কিভাবে কাজ করে?</p>
+                <p>মডারেটর বা এডমিন ড্যাশবোর্ডে যখনই কোনো সংবাদের সাথে ছবি আপলোড করে প্রকাশ করবে, তা সুন্দর ক্যাপশন ও ছবি সহ সরাসরি আপনার ফেসবুক পেজের টাইমলাইনে অটো পোস্ট হয়ে যাবে!</p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

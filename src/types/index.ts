@@ -239,3 +239,12 @@ export interface UpazilaRegion {
   submittedAt?: string;
 }
 
+export interface FacebookSettings {
+  pageId: string;
+  pageAccessToken: string;
+  autoPostEnabled: boolean;
+  pageName?: string;
+  pageFollowers?: number;
+  lastVerifiedAt?: string;
+}
+

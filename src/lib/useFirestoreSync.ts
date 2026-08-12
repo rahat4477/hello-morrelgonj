@@ -44,6 +44,8 @@ export function useFirestoreSync<T extends { id: string }>(
             id: docSnap.id
           }));
           setState(items);
+        } else {
+          setState([]);
         }
       },
       (error) => {
@@ -53,6 +55,18 @@ export function useFirestoreSync<T extends { id: string }>(
 
     return () => unsubscribe();
   }, [collectionName]);
+}
+
+// Helper function to clear all documents in a Firestore collection
+export async function clearCollectionInFirestore(collectionName: string) {
+  try {
+    const colRef = collection(db, collectionName);
+    const snapshot = await getDocs(colRef);
+    const promises = snapshot.docs.map((docSnap) => deleteDoc(doc(db, collectionName, docSnap.id)));
+    await Promise.all(promises);
+  } catch (err) {
+    console.error(`Error clearing Firestore collection (${collectionName}):`, err);
+  }
 }
 
 // Helper function to persist changes to Firestore

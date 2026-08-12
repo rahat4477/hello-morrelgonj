@@ -26,7 +26,8 @@ import {
   Activity,
   Image,
   Bus,
-  Globe
+  Globe,
+  Share2
 } from 'lucide-react';
 import { UserRole } from '../types';
 
@@ -86,6 +87,7 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'pending', label: 'পেন্ডিং আবেদন ও পরিবর্তন', icon: AlertCircle, badge: pendingCount, subtitle: 'রক্তদাতা, তথ্য ও আবেদন রিভিউ' },
     { id: 'moderators', label: 'মডারেটর পারমিশন ও আবেদন', icon: UserCheck, badge: pendingModeratorAppsCount, subtitle: 'ফিচার এক্সেস কন্ট্রোল' },
     { id: 'branding', label: 'লোগো ও ফ্যাবআইকন সেটআপ', icon: Image, badge: null, subtitle: 'পোর্টালে লোগো ও আইকন আপলোড' },
+    { id: 'facebook', label: 'ফেসবুক পেজ অটো-পোস্টিং', icon: Share2, badge: null, subtitle: 'সংবাদ সরাসরি ফেসবুক পেজে পোস্ট' },
     { id: 'buses', label: 'বাস সময়সূচী ও কাউন্টার', icon: Bus, badge: null, subtitle: 'বাস চলাচলের সময় ও ফোন নম্বর' },
     { id: 'donors', label: 'রক্তদাতা ব্যবস্থাপনা', icon: HeartHandshake, badge: pendingDonorsCount, subtitle: 'নিবন্ধিত রক্তদাতাদের তালিকা' },
     { id: 'news', label: 'সংবাদ ও বুলেটিন প্রকাশ', icon: Newspaper, badge: pendingNewsCount, subtitle: 'জরুরি বিজ্ঞপ্তি ও খবর' },

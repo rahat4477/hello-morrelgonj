@@ -19,15 +19,6 @@ const DEFAULT_HELPLINES: EmergencyHelpline[] = [
     color: 'bg-rose-600 border-rose-700 text-white'
   },
   {
-    id: 'help-2',
-    title: 'মোড়েলগঞ্জ উপজেলা স্বাস্থ্য কমপ্লেক্স',
-    subtitle: '২৪ ঘণ্টা জরুরি চিকিৎসা ও ভর্তি',
-    number: '01713241250',
-    formattedNumber: '01713-241250',
-    category: 'health',
-    color: 'bg-emerald-700 border-emerald-800 text-white'
-  },
-  {
     id: 'help-3',
     title: 'মোড়েলগঞ্জ থানা (বাংলাদেশ পুলিশ)',
     subtitle: 'আইন শৃঙ্খলা ও নিরাপত্তা ডিউটি অফিসার',

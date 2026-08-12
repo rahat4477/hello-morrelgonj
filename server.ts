@@ -81,6 +81,157 @@ Provide concise, helpful, and accurate answers with bullet points and phone numb
   }
 });
 
+// Verify Facebook Page Access Token & Page ID
+app.post('/api/facebook/verify', async (req, res) => {
+  try {
+    const pageId = req.body.pageId || process.env.FACEBOOK_PAGE_ID;
+    const pageAccessToken = req.body.pageAccessToken || process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
+
+    if (!pageId || !pageAccessToken) {
+      res.status(400).json({
+        success: false,
+        error: 'Facebook Page ID এবং Access Token প্রয়োজন।'
+      });
+      return;
+    }
+
+    const graphUrl = `https://graph.facebook.com/v19.0/${encodeURIComponent(pageId)}?fields=id,name,picture{url},followers_count,link&access_token=${encodeURIComponent(pageAccessToken)}`;
+    const response = await fetch(graphUrl);
+    const data = await response.json();
+
+    if (data.error) {
+      res.status(400).json({
+        success: false,
+        error: data.error.message || 'ফেসবুক টোকেন ভ্যালিড নয়।',
+        details: data.error
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      page: {
+        id: data.id,
+        name: data.name,
+        picture: data.picture?.data?.url || '',
+        followers: data.followers_count || 0,
+        link: data.link || `https://facebook.com/${data.id}`
+      }
+    });
+  } catch (error: any) {
+    console.error('Facebook verification error:', error);
+    res.status(500).json({
+      success: false,
+      error: error?.message || 'ফেসবুক সার্ভারের সাথে যোগাযোগ করা সম্ভব হয়নি।'
+    });
+  }
+});
+
+// Auto Post News to Facebook Page
+app.post('/api/facebook/post-news', async (req, res) => {
+  try {
+    const { title, summary, category, imageUrl, newsId, pageId: reqPageId, pageAccessToken: reqAccessToken } = req.body;
+
+    const pageId = reqPageId || process.env.FACEBOOK_PAGE_ID;
+    const pageAccessToken = reqAccessToken || process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
+
+    if (!title || !summary) {
+      res.status(400).json({
+        success: false,
+        error: 'সংবাদের শিরোনাম এবং সারসংক্ষেপ প্রয়োজন।'
+      });
+      return;
+    }
+
+    if (!pageId || !pageAccessToken) {
+      res.json({
+        success: false,
+        configured: false,
+        error: 'ফেসবুক পেজ আইডি বা এক্সেস টোকেন কনফিগার করা নেই। অনুগ্রহ করে এডমিন ড্যাশবোর্ডে গিয়ে ফেসবুক ইন্টিগ্রেশন সেটিংসে টোকেন সেট করুন।'
+      });
+      return;
+    }
+
+    const categoryMap: Record<string, string> = {
+      local: 'স্থানীয়_সংবাদ',
+      emergency: 'জরুরি_ঘোষণা',
+      development: 'উন্নয়ন_সংবাদ',
+      sports: 'খেলাধুলা',
+      health: 'স্বাস্থ্য_বুলেটিন',
+      education: 'শিক্ষা_সংবাদ'
+    };
+
+    const categoryTag = categoryMap[category] || 'খবর';
+    const siteUrl = process.env.APP_URL || 'https://hellomorrelgonj.gov.bd';
+    const newsLink = newsId ? `${siteUrl}/#news-${newsId}` : siteUrl;
+
+    const formattedMessage = `📰 ${title}
+
+${summary}
+
+🔗 বিস্তারিত পড়তে ভিসিট করুন: ${newsLink}
+
+📍 হ্যালো মোড়েলগঞ্জ - উপজেলার ডিজিটাল বার্তা
+#${categoryTag} #HelloMorrelganj #Morrelganj #মোড়েলগঞ্জ`;
+
+    let fbRes;
+    let endpointUrl;
+
+    // Check if imageUrl is a public HTTP link (Graph API accepts image URL)
+    if (imageUrl && imageUrl.startsWith('http')) {
+      endpointUrl = `https://graph.facebook.com/v19.0/${encodeURIComponent(pageId)}/photos`;
+      fbRes = await fetch(endpointUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: imageUrl,
+          caption: formattedMessage,
+          access_token: pageAccessToken
+        })
+      });
+    } else {
+      // Feed text post with link
+      endpointUrl = `https://graph.facebook.com/v19.0/${encodeURIComponent(pageId)}/feed`;
+      fbRes = await fetch(endpointUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: formattedMessage,
+          link: newsLink,
+          access_token: pageAccessToken
+        })
+      });
+    }
+
+    const fbData = await fbRes.json();
+
+    if (fbData.error) {
+      console.error('Facebook Graph API error:', fbData.error);
+      res.status(400).json({
+        success: false,
+        configured: true,
+        error: fbData.error.message || 'ফেসবুক পেজে পোস্ট করতে সমস্যা হয়েছে।',
+        details: fbData.error
+      });
+      return;
+    }
+
+    const postId = fbData.id || fbData.post_id;
+    res.json({
+      success: true,
+      configured: true,
+      postId,
+      postUrl: `https://facebook.com/${postId}`
+    });
+  } catch (error: any) {
+    console.error('Facebook post error:', error);
+    res.status(500).json({
+      success: false,
+      error: error?.message || 'সার্ভার থেকে ফেসবুকে পোস্ট করার অনুরোধ ব্যর্থ হয়েছে।'
+    });
+  }
+});
+
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');

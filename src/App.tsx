@@ -27,7 +27,8 @@ import {
   EmergencyHelpline,
   BusSchedule,
   TicketCounter,
-  UpazilaRegion
+  UpazilaRegion,
+  FacebookSettings
 } from './types';
 
 import {
@@ -48,7 +49,7 @@ import {
   MORRELGANJ_REGIONS,
   MORRELGANJ_UPAZILA_INFO
 } from './data/morrelgonjRegionData';
-import { useFirestoreSync, saveToFirestore } from './lib/useFirestoreSync';
+import { useFirestoreSync, saveToFirestore, clearCollectionInFirestore } from './lib/useFirestoreSync';
 import { ensureTransparentLogo } from './utils/imageUtils';
 
 export default function App() {
@@ -131,34 +132,32 @@ export default function App() {
   const [systemLogs, setSystemLogs] = useState<SystemLog[]>(INITIAL_LOGS);
 
   // Moderator Applications State
-  const [moderatorApplications, setModeratorApplications] = useState<ModeratorApplication[]>([
-    {
-      id: 'mod-app-1',
-      applicantName: 'আরিফুল ইসলাম তানভীর',
-      phone: '01712345678',
-      email: 'tanvir.morrelganj@gmail.com',
-      union: 'পঞ্চকরণ',
-      village: 'দেবরাজ গ্রাম',
-      profession: 'সহকারী শিক্ষক (পঞ্চকরণ হাই স্কুল)',
-      reason: 'আমাদের এলাকার জরুরী হাসপাতাল, অ্যাম্বুলেন্স সেবা ও রক্তদাতাদের সঠিক তথ্য নাগরিক পোর্টালে নিয়মিত আপডেট রাখতে চাই।',
-      nidOrId: '1995821948102',
-      submittedAt: '2026-08-08',
-      status: 'pending'
-    },
-    {
-      id: 'mod-app-2',
-      applicantName: 'মোছাঃ নাসরীন আক্তার',
-      phone: '01898765432',
-      email: 'nasrin.p@yahoo.com',
-      union: 'বারইখালী',
-      village: 'বারইখালী বাজার সংলগ্ন',
-      profession: 'সমাজসেবক ও স্থানীয় উন্নয়ন কর্মী',
-      reason: 'মোড়েলগঞ্জের সরকারি সেবা ও নোটিশসমূহ দ্রুত ইউনিয়নবাসীদের জানাতে ভূমিকা রাখতে চাই।',
-      nidOrId: '1998492019481',
-      submittedAt: '2026-08-07',
-      status: 'pending'
-    }
-  ]);
+  const [moderatorApplications, setModeratorApplications] = useState<ModeratorApplication[]>([]);
+
+  // Automatic one-time cleanup of all example/demo data from Firestore
+  React.useEffect(() => {
+    const clearDemoDataFromFirestore = async () => {
+      const collectionsToClear = [
+        'news',
+        'donors',
+        'hospitals',
+        'doctors',
+        'spots',
+        'guides',
+        'offices',
+        'ambulances',
+        'helplines',
+        'buses',
+        'busCounters',
+        'logs',
+        'moderatorApplications'
+      ];
+      for (const col of collectionsToClear) {
+        await clearCollectionInFirestore(col);
+      }
+    };
+    clearDemoDataFromFirestore();
+  }, []);
 
   // Firestore Real-Time Cloud Sync
   useFirestoreSync('news', INITIAL_NEWS, setNewsList);
@@ -180,6 +179,31 @@ export default function App() {
   });
   useFirestoreSync('logs', INITIAL_LOGS, setSystemLogs);
   useFirestoreSync('moderatorApplications', [], setModeratorApplications);
+
+  // Facebook Auto-Post Settings State
+  const [facebookSettings, setFacebookSettings] = useState<FacebookSettings>({
+    pageId: '',
+    pageAccessToken: '',
+    autoPostEnabled: true
+  });
+
+  useFirestoreSync<{ id: string; pageId?: string; pageAccessToken?: string; autoPostEnabled?: boolean; pageName?: string; pageFollowers?: number; lastVerifiedAt?: string }>(
+    'facebook_settings',
+    [{ id: 'config', pageId: '', pageAccessToken: '', autoPostEnabled: true }],
+    (data) => {
+      if (data && data.length > 0) {
+        const cfg = data[0];
+        setFacebookSettings({
+          pageId: cfg.pageId || '',
+          pageAccessToken: cfg.pageAccessToken || '',
+          autoPostEnabled: cfg.autoPostEnabled !== undefined ? cfg.autoPostEnabled : true,
+          pageName: cfg.pageName,
+          pageFollowers: cfg.pageFollowers,
+          lastVerifiedAt: cfg.lastVerifiedAt
+        });
+      }
+    }
+  );
 
   // Modals state
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
@@ -327,6 +351,8 @@ export default function App() {
             setSiteLogo={setSiteLogo}
             siteFavicon={siteFavicon}
             setSiteFavicon={setSiteFavicon}
+            facebookSettings={facebookSettings}
+            setFacebookSettings={setFacebookSettings}
           />
         ) : userRole === 'moderator' ? (
           <ModeratorDashboard
@@ -351,6 +377,7 @@ export default function App() {
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             moderatorPermissions={moderatorPermissions}
+            facebookSettings={facebookSettings}
             onLogout={() => {
               setUserRole('citizen');
               setActiveTab('home');
