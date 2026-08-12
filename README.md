@@ -1,11 +1,89 @@
-<div align="center">
+# 🇧🇩 হ্যালো মোড়েলগঞ্জ (Hello Morrelgonj)
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+**হ্যালো মোড়েলগঞ্জ** হলো বাগেরহাট জেলার মোড়েলগঞ্জ উপজেলার একটি পূর্ণাঙ্গ ডিজিটাল সেবা পোর্টাল ও তথ্য নির্দেশিকা। এই অ্যাপ্লিকেশনটির মাধ্যমে নাগরিকরা স্বাস্থ্যসেবা, রক্তদাতা নির্দেশিকা, জরুরি যোগাযোগ, স্থানীয় সংবাদ, সরকারি দপ্তর ও পর্যটন স্থানসমূহ সহজেই খুঁজে পাবেন।
 
-  <h1>Built with AI Studio</h2>
+---
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## 🌟 প্রধান সুবিধাসমূহ (Key Features)
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+- **মডারেটর ও প্রশাসনিক প্যানেল (Admin & Moderator Dashboard):**
+  - ফোন নম্বর ও পাসওয়ার্ড সিকিউরিটি যাচাইয়ের মাধ্যমে সুরক্ষিত এক্সেস।
+  - ইউনিয়ন ও ওয়ার্ডভিত্তিক তথ্য যাচাই ও আপডেট করার সুবিধা।
+- **জরুরি রক্তদাতা ডিরেক্টরি (Blood Donor Directory):**
+  - ইউনিয়ন ও ব্লাড গ্রুপ অনুযায়ী রক্তদাতা অনুসন্ধান।
+  - ইমার্জেন্সি ডোনার রেজিস্ট্রেশন ও স্ট্যাটাস ট্র্যাকিং।
+- **স্বাস্থ্যসেবা ও জরুরি কন্টাক্ট (Healthcare & Emergency Contacts):**
+  - মোড়েলগঞ্জ উপজেলা স্বাস্থ্য কমপ্লেক্স, ডাক্তারদের ভিজিটিং সময়, প্রাইভেট ক্লিনিক ও ফার্মেসি ডিরেক্টরি।
+  - ২৪/৭ অ্যাম্বুলেন্স, ফায়ার সার্ভিস, থানা ও বিদ্যুৎ অফিসের নাম্বার।
+- **নাগরিক সংবাদ ও স্থানীয় আপডেট (Local News & Updates):**
+  - উপজেলার সত্য যাচাইকৃত সংবাদ ও জরুরি নোটিশ বোর্ড।
+- **পর্যটন ও ঐতিহ্য (Tourism & Heritage):**
+  - মোড়েলগঞ্জের ঐতিহ্যবাহী স্থান ও ভ্রমণের নির্দেশিকা।
+- **নিরাপদ ডেটাবেজ সিঙ্ক (Firestore Realtime Persistence):**
+  - ব্রাউজার ক্যাশিং ও গুগল ফায়ারস্টোর ডেটাবেজের সাথে সরাসরি ডেটা আপডেট।
 
-</div>
+---
+
+## 🛠️ টেকনোলজি স্ট্যাক (Tech Stack)
+
+- **Front-end:** React 19, TypeScript, Tailwind CSS v4, Lucide Icons, Motion (Framer Motion)
+- **Back-end:** Express.js (Node.js)
+- **Build System:** Vite, esbuild, tsx
+- **Database:** Firebase Firestore
+- **AI Integration:** Google Gemini API (`@google/genai`)
+
+---
+
+## 🚀 লোকালি চালু করার নিয়ম (How to Run Locally)
+
+### ১. ডিপেন্ডেন্সি ইনস্টল করুন:
+```bash
+npm install
+```
+
+### ২. এনভায়রনমেন্ট ভেরিয়েবল সেটআপ:
+`.env.example` ফাইল অনুকরণ করে একটি `.env` ফাইল তৈরি করুন:
+```env
+GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
+APP_URL="http://localhost:3000"
+```
+
+### ৩. ডেভেলপমেন্ট সার্ভার চালু করুন:
+```bash
+npm run dev
+```
+অ্যাপটি [http://localhost:3000](http://localhost:3000) এ চালু হবে।
+
+### ৪. প্রডাকশন বিল্ড ও স্টার্ট:
+```bash
+npm run build
+npm start
+```
+
+---
+
+## 📜 টেস্ট লগইন তথ্য (Demo Test Credentials)
+
+- **এডমিন এক্সেস (Admin Login):**
+  - মোবাইল: `01700000000`
+  - পাসওয়ার্ড: `1234`
+- **মডারেটর এক্সেস (Moderator Login):**
+  - মোবাইল: `01712345678`
+  - পাসওয়ার্ড: `1234` বা `5678`
+
+---
+
+## 📂 প্রোজেক্ট ফোল্ডার স্ট্রাকচার
+
+```text
+├── src/
+│   ├── components/       # রিয়্যাক্ট কম্পোনেন্টস (CitizenView, Admin, Moderator, etc.)
+│   ├── lib/              # ফায়ারস্টোর সিঙ্ক ও ইউটিলিটি সার্ভিস
+│   ├── utils/            # ইমেজ কমপ্রেশন ও ইমেজ হেল্পার
+│   ├── types.ts          # টাইপস্ক্রিপ্ট ইন্টারফেস
+│   ├── App.tsx           # মেইন রুটিন ও স্টেট ম্যানেজমেন্ট
+│   └── main.tsx          # অ্যাপলিকেশন এন্ট্রি পয়েন্ট
+├── server.ts             # এক্সপ্রেস ব্যাকএন্ড সার্ভার
+├── firebase-blueprint.json # ফায়ারস্টোর স্কিমা
+└── firestore.rules       # সিকিউরিটি রুলস
+```

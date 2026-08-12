@@ -1,0 +1,6 @@
+{
+  "name": "Hello Morrelgonj",
+  "description": "হ্যালো মোড়েলগঞ্জ - নিউজ, রক্তদাতা, হাসপাতাল, ডাক্তার, সরকারি অফিস, অ্যাম্বুলেন্স ও পর্যটন নির্দেশিকা",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

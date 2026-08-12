@@ -1,0 +1,49 @@
+{
+  "entities": {
+    "helplines": {
+      "title": "Emergency Helplines",
+      "description": "Helplines for police, fire, health, admin, power, ambulance, etc.",
+      "fields": {
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "number": { "type": "string" },
+        "formattedNumber": { "type": "string" },
+        "category": { "type": "string" },
+        "color": { "type": "string" }
+      }
+    },
+    "news": {
+      "title": "News Items",
+      "description": "Local news and announcements",
+      "fields": {
+        "title": { "type": "string" },
+        "details": { "type": "string" },
+        "date": { "type": "string" },
+        "category": { "type": "string" },
+        "status": { "type": "string" },
+        "image": { "type": "string" }
+      }
+    },
+    "donors": {
+      "title": "Blood Donors",
+      "description": "Registered blood donors",
+      "fields": {
+        "name": { "type": "string" },
+        "bloodGroup": { "type": "string" },
+        "union": { "type": "string font" },
+        "phone": { "type": "string" },
+        "lastDonationDate": { "type": "string" },
+        "status": { "type": "string" }
+      }
+    },
+    "logs": {
+      "title": "System Audit Logs",
+      "description": "Log of admin and moderator activities",
+      "fields": {
+        "action": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string" }
+      }
+    }
+  }
+}
