@@ -153,9 +153,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         return;
       }
       try {
-        const compressed = await compressImage(file, 350, 0.85);
+        const compressed = await compressImage(file, 1200, 0.98);
         setStagedLogo(compressed);
-        setBrandingNotice('নতুন লোগো প্রসেস ও কমপ্রেস করা হয়েছে। নিচে "লোগো সেভ করুন" চাপুন!');
+        setBrandingNotice('নতুন এইচডি লোগো প্রসেস করা হয়েছে। নিচে "লোগো সেভ করুন" চাপুন!');
       } catch (err) {
         alert('লোগো ইমেজ প্রসেস করতে সমস্যা হয়েছে।');
       }
@@ -170,7 +170,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         return;
       }
       try {
-        const compressed = await compressImage(file, 128, 0.85);
+        const compressed = await compressImage(file, 256, 0.95);
         setStagedFavicon(compressed);
         setBrandingNotice('নতুন ফ্যাবআইকন প্রসেস করা হয়েছে। নিচে "ফ্যাবআইকন সেভ করুন" চাপুন!');
       } catch (err) {
@@ -185,13 +185,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       alert('অনুগ্রহ করে প্রথমে একটি লোগো ফাইল আপলোড করুন অথবা ইউআরএল দিন।');
       return;
     }
-    if (targetLogo.startsWith('data:image')) {
-      targetLogo = await compressImage(targetLogo, 350, 0.85);
-    }
     if (setSiteLogo) {
       setSiteLogo(targetLogo);
       addLog('লোগো সংরক্ষণ', 'পোর্টের প্রধান লোগো ডেটাবেজে সেভ করা হয়েছে');
-      setBrandingNotice('✅ সাইট লোগো সফলভাবে স্থায়ীভাবে ডেটাবেজে সেভ করা হয়েছে!');
+      setBrandingNotice('✅ সাইট লোগো হাই-কোয়ালিটি মোডে স্থায়ীভাবে ডেটাবেজে সেভ করা হয়েছে!');
       setStagedLogo(null);
       setLogoInputUrl('');
       setTimeout(() => setBrandingNotice(null), 5000);
@@ -203,9 +200,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (!targetFavicon) {
       alert('অনুগ্রহ করে প্রথমে একটি ফ্যাবআইকন ফাইল আপলোড করুন অথবা ইউআরএল দিন।');
       return;
-    }
-    if (targetFavicon.startsWith('data:image')) {
-      targetFavicon = await compressImage(targetFavicon, 128, 0.85);
     }
     if (setSiteFavicon) {
       setSiteFavicon(targetFavicon);

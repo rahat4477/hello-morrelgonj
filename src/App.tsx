@@ -63,27 +63,6 @@ export default function App() {
     return localStorage.getItem('morrelgonj_site_favicon') || '/logo.jpg';
   });
 
-  // Auto-clean any black or solid background on logo or favicon load/sync
-  React.useEffect(() => {
-    if (siteLogo) {
-      ensureTransparentLogo(siteLogo).then((cleanLogo) => {
-        if (cleanLogo && cleanLogo !== siteLogo) {
-          setSiteLogoState(cleanLogo);
-        }
-      });
-    }
-  }, [siteLogo]);
-
-  React.useEffect(() => {
-    if (siteFavicon) {
-      ensureTransparentLogo(siteFavicon).then((cleanFavicon) => {
-        if (cleanFavicon && cleanFavicon !== siteFavicon) {
-          setSiteFaviconState(cleanFavicon);
-        }
-      });
-    }
-  }, [siteFavicon]);
-
   useFirestoreSync<{ id: string; siteLogo?: string; siteFavicon?: string }>(
     'site_branding',
     [{ id: 'config', siteLogo, siteFavicon }],
@@ -103,18 +82,16 @@ export default function App() {
     }
   );
 
-  const setSiteLogo = async (newLogo: string) => {
-    const cleanLogo = await ensureTransparentLogo(newLogo);
-    setSiteLogoState(cleanLogo);
-    localStorage.setItem('morrelgonj_site_logo', cleanLogo);
-    saveToFirestore('site_branding', { id: 'config', siteLogo: cleanLogo, siteFavicon });
+  const setSiteLogo = (newLogo: string) => {
+    setSiteLogoState(newLogo);
+    localStorage.setItem('morrelgonj_site_logo', newLogo);
+    saveToFirestore('site_branding', { id: 'config', siteLogo: newLogo, siteFavicon });
   };
 
-  const setSiteFavicon = async (newFavicon: string) => {
-    const cleanFavicon = await ensureTransparentLogo(newFavicon);
-    setSiteFaviconState(cleanFavicon);
-    localStorage.setItem('morrelgonj_site_favicon', cleanFavicon);
-    saveToFirestore('site_branding', { id: 'config', siteLogo, siteFavicon: cleanFavicon });
+  const setSiteFavicon = (newFavicon: string) => {
+    setSiteFaviconState(newFavicon);
+    localStorage.setItem('morrelgonj_site_favicon', newFavicon);
+    saveToFirestore('site_branding', { id: 'config', siteLogo, siteFavicon: newFavicon });
   };
 
   // Dynamic favicon head tag updater
