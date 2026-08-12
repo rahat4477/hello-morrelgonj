@@ -158,14 +158,14 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Main Header Content */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand Logo */}
         <div
-          className="flex items-center gap-0.5 cursor-pointer shrink-0"
+          className="flex items-center gap-2 cursor-pointer shrink-0"
           onClick={() => setActiveTab(userRole === 'moderator' ? 'news' : 'home')}
         >
           {/* Favicon / Small Icon */}
-          <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-white p-0 flex items-center justify-center shadow-md border border-emerald-500/30 shrink-0 overflow-hidden">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white p-0.5 flex items-center justify-center shadow-xs border border-emerald-500/30 shrink-0 overflow-hidden">
             <img src={siteFavicon || siteLogo} alt="Favicon" className="w-full h-full object-cover rounded-full" />
           </div>
 
@@ -175,7 +175,7 @@ export const Header: React.FC<HeaderProps> = ({
               <img
                 src={siteLogo}
                 alt="hellomorrelgonj logo"
-                className="h-20 sm:h-32 md:h-44 lg:h-52 w-auto max-w-[320px] sm:max-w-[580px] md:max-w-[750px] object-contain rounded-lg"
+                className="h-9 sm:h-11 md:h-13 lg:h-14 w-auto max-w-[200px] sm:max-w-[300px] md:max-w-[400px] object-contain rounded-md"
               />
             </div>
           ) : (
