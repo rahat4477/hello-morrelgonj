@@ -165,7 +165,7 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => setActiveTab(userRole === 'moderator' ? 'news' : 'home')}
         >
           {/* Favicon / Small Icon */}
-          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full p-0.5 flex items-center justify-center shadow-xs border border-emerald-500/30 shrink-0 overflow-hidden bg-transparent">
+          <div className="w-12 h-12 sm:w-11 sm:h-11 rounded-full p-0.5 flex items-center justify-center shadow-xs border border-emerald-500/30 shrink-0 overflow-hidden bg-transparent">
             <img
               src={siteFavicon || siteLogo}
               alt="Favicon"
@@ -179,7 +179,7 @@ export const Header: React.FC<HeaderProps> = ({
               <img
                 src={siteLogo}
                 alt="hellomorrelgonj logo"
-                className="h-9 sm:h-11 md:h-13 lg:h-14 w-auto max-w-[200px] sm:max-w-[300px] md:max-w-[400px] object-contain rounded-md bg-transparent"
+                className="h-14 sm:h-11 md:h-13 lg:h-14 w-auto max-w-[280px] sm:max-w-[300px] md:max-w-[400px] object-contain rounded-md bg-transparent"
               />
             </div>
           ) : (
