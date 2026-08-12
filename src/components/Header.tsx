@@ -165,7 +165,7 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => setActiveTab(userRole === 'moderator' ? 'news' : 'home')}
         >
           {/* Favicon / Small Icon */}
-          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white p-0.5 flex items-center justify-center shadow-xs border border-emerald-500/30 shrink-0 overflow-hidden">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full p-0.5 flex items-center justify-center shadow-xs border border-emerald-500/30 shrink-0 overflow-hidden">
             <img src={siteFavicon || siteLogo} alt="Favicon" className="w-full h-full object-cover rounded-full" />
           </div>
 
@@ -309,15 +309,15 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Drawer Sidebar */}
           <div className="relative w-full max-w-xs sm:max-w-sm bg-slate-900 text-slate-100 h-full shadow-2xl flex flex-col z-10 overflow-hidden border-l border-slate-800 animate-in slide-in-from-right duration-250">
             {/* Drawer Header */}
-            <div className="bg-slate-950 p-4 border-b border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <div className="w-14 h-14 rounded-full bg-white p-0 flex items-center justify-center shadow-sm shrink-0 overflow-hidden border border-slate-700">
+            <div className="p-3.5 border-b border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-full p-0.5 flex items-center justify-center shadow-xs shrink-0 overflow-hidden border border-slate-700">
                   <img src={siteFavicon || siteLogo} alt="Logo" className="w-full h-full object-cover rounded-full" />
                 </div>
                 {siteLogo ? (
                   <div className="flex flex-col justify-center">
-                    <img src={siteLogo} alt="Logo" className="h-16 sm:h-20 w-auto object-contain max-w-[240px] sm:max-w-[300px] rounded-md" />
-                    <p className="text-[10px] text-emerald-400 font-medium mt-0.5">
+                    <img src={siteLogo} alt="Logo" className="h-10 sm:h-12 w-auto object-contain max-w-[180px] sm:max-w-[220px] rounded-md" />
+                    <p className="text-[10px] text-emerald-400 font-bold mt-0.5">
                       {userRole === 'moderator'
                         ? 'মডারেটর কন্ট্রোল প্যানেল'
                         : userRole === 'admin'
@@ -327,8 +327,8 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
                 ) : (
                   <div>
-                    <h2 className="text-base font-bold text-white leading-tight">হ্যালো মোড়েলগঞ্জ</h2>
-                    <p className="text-xs text-emerald-400 font-medium">
+                    <h2 className="text-base font-extrabold text-slate-900 leading-tight">হ্যালো মোড়েলগঞ্জ</h2>
+                    <p className="text-xs text-emerald-700 font-semibold">
                       {userRole === 'moderator'
                         ? 'মডারেটর কন্ট্রোল প্যানেল'
                         : userRole === 'admin'
@@ -340,7 +340,7 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
               <button
                 onClick={() => setDrawerOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>

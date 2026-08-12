@@ -23,12 +23,14 @@ export const Footer: React.FC<FooterProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Col 1 */}
         <div className="space-y-3">
-          <div className="flex items-center gap-1">
-            <div className="w-12 h-12 rounded-full bg-white p-0 flex items-center justify-center shrink-0 overflow-hidden border border-slate-700">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-full p-0.5 flex items-center justify-center shrink-0 overflow-hidden border border-slate-700 shadow-xs">
               <img src={siteFavicon || siteLogo} alt="Logo" className="w-full h-full object-cover rounded-full" />
             </div>
             {siteLogo ? (
-              <img src={siteLogo} alt="hellomorrelgonj" className="h-16 sm:h-24 w-auto object-contain max-w-[320px] rounded-md" />
+              <div className="inline-flex items-center">
+                <img src={siteLogo} alt="hellomorrelgonj" className="h-9 sm:h-11 w-auto object-contain max-w-[220px] rounded-md" />
+              </div>
             ) : (
               <h3 className="font-extrabold text-base text-white tracking-tight">hellomorrelgonj</h3>
             )}

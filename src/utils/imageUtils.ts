@@ -37,8 +37,8 @@ export async function compressImage(
       }
 
       ctx.drawImage(img, 0, 0, width, height);
-      // Convert to compressed JPEG data URL
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+      // Always use PNG or WebP to preserve alpha channel transparency (transparent background)
+      const compressedDataUrl = canvas.toDataURL('image/png');
       resolve(compressedDataUrl);
     };
 
