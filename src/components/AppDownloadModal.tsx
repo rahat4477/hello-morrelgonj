@@ -2,18 +2,12 @@ import React, { useState, useEffect } from 'react';
 import {
   Smartphone,
   Download,
-  ExternalLink,
   CheckCircle2,
   X,
   Sparkles,
   ShieldCheck,
-  QrCode,
   Info,
-  ChevronRight,
-  ArrowDownToLine,
-  PhoneCall,
-  Check,
-  AlertCircle
+  Check
 } from 'lucide-react';
 
 interface AppDownloadModalProps {
@@ -91,53 +85,25 @@ export const AppDownloadModal: React.FC<AppDownloadModalProps> = ({
 
   const handleInstallApp = async () => {
     if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const choiceResult = await deferredPrompt.userChoice;
-      if (choiceResult.outcome === 'accepted') {
-        setDownloadSuccess(true);
-        setTimeout(() => setDownloadSuccess(false), 5000);
+      try {
+        deferredPrompt.prompt();
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          setDownloadSuccess(true);
+          setTimeout(() => {
+            setDownloadSuccess(false);
+            handleYesOpenApp();
+          }, 1500);
+        }
+        setDeferredPrompt(null);
+      } catch (err) {
+        handleYesOpenApp();
       }
-      setDeferredPrompt(null);
     } else {
-      // Trigger Web App APK / Launcher Package Download
-      triggerApkDownload();
+      // Browser doesn't support direct prompt or in-app browser (Messenger/FB)
+      // Switch directly to Web App Mode for the clean native experience
+      handleYesOpenApp();
     }
-  };
-
-  const triggerApkDownload = () => {
-    // Generate an APK / PWA Installer Shortcut Package
-    const appManifestContent = `
-==============================================
-হ্যালো মোড়েলগঞ্জ - অ্যান্ড্রয়েড অ্যাপ (Hello Morrelganj App)
-==============================================
-অ্যাপটির নাম: হ্যালো মোড়েলগঞ্জ (Hello Morrelganj)
-ভার্সন: 2.5.0
-সাইজ: 4.8 MB
-প্ল্যাটফর্ম: Android / PWA Smart App
-পাবলিশার: উপজেলা প্রশাসন ও মোড়েলগঞ্জ ডেভেলপমেন্ট টিম
-
-আপনার অ্যান্ড্রয়েড ফোনে সরাসরি ইনস্টল করার নিয়ম:
-১. এই ফাইলটি আপনার ফোনে ডাউনলোড হয়েছে।
-২. আপনার ক্রোম ব্রাউজারের উপরে ডান পাশে ৩-ডট (⋮) মেনুতে যান।
-৩. 'Add to Home screen' বা 'Install app' বা 'অ্যাপ ইনস্টল করুন' বিকল্পে ক্লিক করুন।
-৪. আপনার ফোনের হোম স্ক্রিনে 'হ্যালো মোড়েলগঞ্জ' অ্যাপটির আইকন চলে আসবে।
-
-ওয়েবসাইট ইউআরএল: ${window.location.origin}
-==============================================
-    `.trim();
-
-    const blob = new Blob([appManifestContent], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'Hello_Morrelganj_Android_App_Installer.apk.txt';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    setDownloadSuccess(true);
-    setTimeout(() => setDownloadSuccess(false), 5000);
   };
 
   const handleYesOpenApp = () => {
@@ -345,15 +311,15 @@ export const AppDownloadModal: React.FC<AppDownloadModalProps> = ({
             </ol>
           </div>
 
-          {/* Direct File Download Option */}
+          {/* Direct Launch Option */}
           <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-100">
             <button
               type="button"
-              onClick={triggerApkDownload}
-              className="text-xs font-bold text-sky-700 hover:text-sky-900 underline flex items-center gap-1.5 cursor-pointer"
+              onClick={handleYesOpenApp}
+              className="text-xs font-bold text-sky-700 hover:text-sky-900 flex items-center gap-1.5 cursor-pointer"
             >
-              <ArrowDownToLine className="w-4 h-4 text-sky-600" />
-              <span>ডাইরেক্ট অ্যাপ ফাইল (.apk) ডাউলোড করুন</span>
+              <Smartphone className="w-4 h-4 text-sky-600" />
+              <span>সরাসরি অ্যাপ মোডে চালু করুন</span>
             </button>
 
             <button
