@@ -16,6 +16,7 @@ import {
   Activity,
   AlertCircle,
   Eye,
+  EyeOff,
   Check,
   X,
   Search,
@@ -57,7 +58,8 @@ import {
   BusSchedule,
   TicketCounter,
   UpazilaRegion,
-  FacebookSettings
+  FacebookSettings,
+  AdminAccount
 } from '../types';
 import { saveToFirestore, deleteFromFirestore } from '../lib/useFirestoreSync';
 import { compressImage } from '../utils/imageUtils';
@@ -101,6 +103,8 @@ interface AdminDashboardProps {
   setSiteFavicon?: (favicon: string) => void;
   facebookSettings?: FacebookSettings;
   setFacebookSettings?: React.Dispatch<React.SetStateAction<FacebookSettings>>;
+  adminAccounts?: AdminAccount[];
+  setAdminAccounts?: React.Dispatch<React.SetStateAction<AdminAccount[]>>;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -139,11 +143,88 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   siteFavicon = '/logo.jpg',
   setSiteFavicon,
   facebookSettings = { pageId: '', pageAccessToken: '', autoPostEnabled: true, pageName: '', pageFollowers: 0 },
-  setFacebookSettings
+  setFacebookSettings,
+  adminAccounts = [],
+  setAdminAccounts
 }) => {
-  type AdminTabType = 'map3d' | 'pending' | 'moderators' | 'branding' | 'facebook' | 'helplines' | 'donors' | 'news' | 'hospitals' | 'doctors' | 'offices' | 'ambulances' | 'buses' | 'logs';
+  type AdminTabType = 'map3d' | 'pending' | 'moderators' | 'branding' | 'facebook' | 'helplines' | 'donors' | 'news' | 'hospitals' | 'doctors' | 'offices' | 'ambulances' | 'buses' | 'logs' | 'admins';
   const [internalAdminTab, setInternalAdminTab] = useState<AdminTabType>('pending');
   const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
+
+  // Admin Account Management State
+  const [newAdminName, setNewAdminName] = useState('');
+  const [newAdminPhone, setNewAdminPhone] = useState('');
+  const [newAdminPassword, setNewAdminPassword] = useState('');
+  const [adminMsg, setAdminMsg] = useState('');
+
+  const [editingAdminId, setEditingAdminId] = useState<string | null>(null);
+  const [editAdminName, setEditAdminName] = useState('');
+  const [editAdminPhone, setEditAdminPhone] = useState('');
+  const [editAdminPassword, setEditAdminPassword] = useState('');
+  const [showAdminPassMap, setShowAdminPassMap] = useState<Record<string, boolean>>({});
+
+  const handleAddAdmin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAdminPhone.trim() || !newAdminPassword.trim()) {
+      alert('মোবাইল নম্বর ও পাসওয়ার্ড প্রদান আবশ্যক!');
+      return;
+    }
+    const newAdmin: AdminAccount = {
+      id: `admin-${Date.now()}`,
+      name: newAdminName.trim() || 'সহকারী এডমিন',
+      phone: newAdminPhone.trim(),
+      password: newAdminPassword.trim(),
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+
+    if (setAdminAccounts) {
+      setAdminAccounts((prev) => [...prev, newAdmin]);
+    }
+    saveToFirestore('admin_accounts', newAdmin);
+    addLog('নতুন এডমিন অ্যাকাউন্ট যোগ', `নতুন এডমিন: ${newAdmin.name} (${newAdmin.phone}) যুক্ত করা হয়েছে।`);
+    setNewAdminName('');
+    setNewAdminPhone('');
+    setNewAdminPassword('');
+    setAdminMsg('নতুন এডমিন অ্যাকাউন্ট সফলভাবে যুক্ত করা হয়েছে!');
+    setTimeout(() => setAdminMsg(''), 3000);
+  };
+
+  const handleUpdateAdmin = (adminId: string) => {
+    if (!editAdminPhone.trim() || !editAdminPassword.trim()) {
+      alert('মোবাইল নম্বর ও পাসওয়ার্ড প্রদান আবশ্যক!');
+      return;
+    }
+    const updated: AdminAccount = {
+      id: adminId,
+      name: editAdminName.trim() || 'এডমিন',
+      phone: editAdminPhone.trim(),
+      password: editAdminPassword.trim(),
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+
+    if (setAdminAccounts) {
+      setAdminAccounts((prev) => prev.map((a) => (a.id === adminId ? updated : a)));
+    }
+    saveToFirestore('admin_accounts', updated);
+    addLog('এডমিন অ্যাকাউন্ট পরিবর্তন', `এডমিন ${updated.name} (${updated.phone}) এর ইউজারনেম/পাসওয়ার্ড পরিবর্তন করা হয়েছে।`);
+    setEditingAdminId(null);
+    setAdminMsg('এডমিন ইউজারনেম ও পাসওয়ার্ড সফলভাবে আপডেট করা হয়েছে!');
+    setTimeout(() => setAdminMsg(''), 3000);
+  };
+
+  const handleDeleteAdmin = (adminId: string) => {
+    if (adminAccounts.length <= 1) {
+      alert('কমপক্ষে ১টি এডমিন একাউন্ট থাকা আবশ্যক!');
+      return;
+    }
+    if (!confirm('আপনি কি নিশ্চিত যে এই এডমিন অ্যাকাউন্টটি মুছে ফেলতে চান?')) return;
+
+    if (setAdminAccounts) {
+      setAdminAccounts((prev) => prev.filter((a) => a.id !== adminId));
+    }
+    deleteFromFirestore('admin_accounts', adminId);
+    addLog('এডমিন অ্যাকাউন্ট বাতিল', `এডমিন অ্যাকাউন্ট (${adminId}) স্থায়ীভাবে মুছে ফেলা হয়েছে।`);
+  };
 
   // Local state for branding setup
   const [stagedLogo, setStagedLogo] = useState<string | null>(null);
@@ -451,6 +532,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       subtitle: 'ফিচার এক্সেস কন্ট্রোল ও আবেদন রিভিউ',
       icon: UserCheck,
       badge: pendingModeratorApps.length
+    },
+    {
+      id: 'admins',
+      title: 'এডমিন একাউন্ট ও সিকিউরিটি',
+      shortLabel: 'এডমিন একাউন্ট',
+      subtitle: 'ইউজারনেম, পাসওয়ার্ড পরিবর্তন ও নতুন এডমিন যোগ',
+      icon: Key,
+      badge: adminAccounts.length
     },
     {
       id: 'branding',
@@ -987,6 +1076,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   title: 'সরকারি দপ্তর ও কর্মকর্তা নির্দেশিকা',
                   description: 'উপজেলা পরিষদ, থানা ও অন্যান্য সরকারি দপ্তরের তথ্য নির্দেশিকা আপডেট করার ক্ষমতা।',
                   icon: Building2
+                },
+                {
+                  key: 'canManageEmergencyHelplines' as const,
+                  title: 'জরুরি হেল্পলাইন নম্বর আপডেট (Emergency Helplines)',
+                  description: 'থানা, ফায়ার সার্ভিস, হাসপাতাল ও জরুরি হটলাইন ফোন নম্বর যুক্ত ও আপডেট করার ক্ষমতা।',
+                  icon: PhoneCall
                 }
               ].map((perm) => {
                 const Icon = perm.icon;
@@ -1231,6 +1326,234 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 })}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ----------------- ADMIN TAB: ADMIN ACCOUNTS & SECURITY ----------------- */}
+      {adminTab === 'admins' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+                    <Key className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-lg text-slate-900">
+                      এডমিন একাউন্ট ও সিকিউরিটি কন্ট্রোল
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      এডমিন অ্যাকাউন্টের মোবাইল নম্বর, ইউজারনেম ও পাসওয়ার্ড পরিবর্তন করুন অথবা নতুন এডমিন যুক্ত করুন।
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {adminMsg && (
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 p-3.5 rounded-xl text-xs font-bold flex items-center gap-2 animate-in fade-in duration-200">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                <span>{adminMsg}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Registered Admin Accounts List */}
+            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <span>বর্তমান নিবন্ধিত এডমিন অ্যাকাউন্টসমূহ ({adminAccounts.length})</span>
+                </h4>
+              </div>
+
+              <div className="space-y-3">
+                {adminAccounts.map((acc) => {
+                  const isEditing = editingAdminId === acc.id;
+                  const showPass = showAdminPassMap[acc.id] || false;
+
+                  return (
+                    <div
+                      key={acc.id}
+                      className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3"
+                    >
+                      {isEditing ? (
+                        <div className="space-y-3 bg-white p-3.5 rounded-xl border border-sky-300">
+                          <h5 className="font-bold text-xs text-sky-900">এডমিন অ্যাকাউন্ট সম্পাদনা:</h5>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <div>
+                              <label className="text-[11px] font-bold text-slate-700 block">নাম</label>
+                              <input
+                                type="text"
+                                value={editAdminName}
+                                onChange={(e) => setEditAdminName(e.target.value)}
+                                className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-bold text-slate-700 block">মোবাইল নম্বর/ইউজারনেম</label>
+                              <input
+                                type="text"
+                                value={editAdminPhone}
+                                onChange={(e) => setEditAdminPhone(e.target.value)}
+                                className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-mono"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-bold text-slate-700 block">নতুন পাসওয়ার্ড</label>
+                              <input
+                                type="text"
+                                value={editAdminPassword}
+                                onChange={(e) => setEditAdminPassword(e.target.value)}
+                                className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-mono"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-end gap-2 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => setEditingAdminId(null)}
+                              className="px-3 py-1 bg-slate-200 text-slate-700 rounded-lg text-xs font-bold cursor-pointer"
+                            >
+                              বাতিল
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateAdmin(acc.id)}
+                              className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold cursor-pointer"
+                            >
+                              সেভ করুন
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-extrabold text-sm text-slate-900">{acc.name}</span>
+                              <span className="bg-sky-100 text-sky-800 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                                এডমিন
+                              </span>
+                            </div>
+                            <div className="text-xs text-slate-600 font-mono space-x-3">
+                              <span>মোবাইল: <strong className="text-slate-900">{acc.phone}</strong></span>
+                              <span>
+                                পাসওয়ার্ড:{' '}
+                                <strong className="text-slate-900">
+                                  {showPass ? acc.password : '••••••••'}
+                                </strong>
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setShowAdminPassMap((prev) => ({
+                                  ...prev,
+                                  [acc.id]: !prev[acc.id]
+                                }))
+                              }
+                              className="p-2 text-slate-500 hover:text-slate-800 bg-white border border-slate-200 rounded-lg text-xs cursor-pointer"
+                              title={showPass ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'}
+                            >
+                              {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingAdminId(acc.id);
+                                setEditAdminName(acc.name);
+                                setEditAdminPhone(acc.phone);
+                                setEditAdminPassword(acc.password || '1234');
+                              }}
+                              className="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 font-bold text-xs rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                              <span>সম্পাদনা</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteAdmin(acc.id)}
+                              className="p-1.5 text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg cursor-pointer"
+                              title="মুছে ফেলুন"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Add New Admin Form */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
+              <div className="border-b border-slate-100 pb-3">
+                <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                  <Plus className="w-4 h-4 text-sky-600" />
+                  <span>নতুন এডমিন যুক্ত করুন</span>
+                </h4>
+              </div>
+
+              <form onSubmit={handleAddAdmin} className="space-y-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-800 block mb-1">এডমিনের নাম</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="যেমন: মো. রহিম উদ্দিন"
+                    value={newAdminName}
+                    onChange={(e) => setNewAdminName(e.target.value)}
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-800 block mb-1">
+                    মোবাইল নম্বর / ইউজারনেম <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="যেমন: 017xxxxxxxx"
+                    value={newAdminPhone}
+                    onChange={(e) => setNewAdminPhone(e.target.value)}
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-mono outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-800 block mb-1">
+                    পাসওয়ার্ড <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="গোপন পাসওয়ার্ড টাইপ করুন"
+                    value={newAdminPassword}
+                    onChange={(e) => setNewAdminPassword(e.target.value)}
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-mono outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>নতুন এডমিন যুক্ত করুন</span>
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       )}

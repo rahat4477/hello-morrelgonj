@@ -28,7 +28,8 @@ import {
   BusSchedule,
   TicketCounter,
   UpazilaRegion,
-  FacebookSettings
+  FacebookSettings,
+  AdminAccount
 } from './types';
 
 import {
@@ -49,7 +50,7 @@ import {
   MORRELGANJ_REGIONS,
   MORRELGANJ_UPAZILA_INFO
 } from './data/morrelgonjRegionData';
-import { useFirestoreSync, saveToFirestore, clearCollectionInFirestore } from './lib/useFirestoreSync';
+import { useFirestoreSync, saveToFirestore } from './lib/useFirestoreSync';
 import { ensureTransparentLogo } from './utils/imageUtils';
 
 export default function App() {
@@ -134,30 +135,17 @@ export default function App() {
   // Moderator Applications State
   const [moderatorApplications, setModeratorApplications] = useState<ModeratorApplication[]>([]);
 
-  // Automatic one-time cleanup of all example/demo data from Firestore
-  React.useEffect(() => {
-    const clearDemoDataFromFirestore = async () => {
-      const collectionsToClear = [
-        'news',
-        'donors',
-        'hospitals',
-        'doctors',
-        'spots',
-        'guides',
-        'offices',
-        'ambulances',
-        'helplines',
-        'buses',
-        'busCounters',
-        'logs',
-        'moderatorApplications'
-      ];
-      for (const col of collectionsToClear) {
-        await clearCollectionInFirestore(col);
-      }
-    };
-    clearDemoDataFromFirestore();
-  }, []);
+  // Admin Accounts State
+  const INITIAL_ADMIN_ACCOUNTS: AdminAccount[] = [
+    {
+      id: 'admin-1',
+      name: 'প্রধান এডমিন (অফিসিয়াল)',
+      phone: '01700000000',
+      password: '1234',
+      createdAt: '2026-08-12'
+    }
+  ];
+  const [adminAccounts, setAdminAccounts] = useState<AdminAccount[]>(INITIAL_ADMIN_ACCOUNTS);
 
   // Firestore Real-Time Cloud Sync
   useFirestoreSync('news', INITIAL_NEWS, setNewsList);
@@ -179,6 +167,7 @@ export default function App() {
   });
   useFirestoreSync('logs', INITIAL_LOGS, setSystemLogs);
   useFirestoreSync('moderatorApplications', [], setModeratorApplications);
+  useFirestoreSync('admin_accounts', INITIAL_ADMIN_ACCOUNTS, setAdminAccounts);
 
   // Facebook Auto-Post Settings State
   const [facebookSettings, setFacebookSettings] = useState<FacebookSettings>({
@@ -353,6 +342,8 @@ export default function App() {
             setSiteFavicon={setSiteFavicon}
             facebookSettings={facebookSettings}
             setFacebookSettings={setFacebookSettings}
+            adminAccounts={adminAccounts}
+            setAdminAccounts={setAdminAccounts}
           />
         ) : userRole === 'moderator' ? (
           <ModeratorDashboard
@@ -366,6 +357,8 @@ export default function App() {
             setAmbulancesList={setAmbulancesList}
             officesList={officesList}
             setOfficesList={setOfficesList}
+            helplinesList={helplinesList}
+            setHelplinesList={setHelplinesList}
             busSchedules={busSchedules}
             setBusSchedules={setBusSchedules}
             ticketCounters={ticketCounters}
@@ -390,6 +383,7 @@ export default function App() {
         ) : (routePath.includes('/moderator') || routePath.includes('/mod') || routePath.includes('#moderator') || routePath.includes('#mod')) ? (
           <ModeratorLoginPage
             moderatorApplications={moderatorApplications}
+            adminAccounts={adminAccounts}
             siteLogo={siteLogo}
             onLoginSuccess={(matchedMod) => {
               if (matchedMod) {
@@ -450,6 +444,8 @@ export default function App() {
         onClose={() => setIsRoleModalOpen(false)}
         currentRole={userRole}
         moderatorApplications={moderatorApplications}
+        adminAccounts={adminAccounts}
+        onOpenApplyModal={() => setIsModeratorModalOpen(true)}
         onSelectRole={(role, matchedModerator) => {
           setUserRole(role);
           if (role === 'moderator') {

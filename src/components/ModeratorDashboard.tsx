@@ -32,7 +32,8 @@ import {
   Bus,
   Globe,
   Upload,
-  Share2
+  Share2,
+  PhoneCall
 } from 'lucide-react';
 
 import {
@@ -45,7 +46,8 @@ import {
   BusSchedule,
   TicketCounter,
   UpazilaRegion,
-  FacebookSettings
+  FacebookSettings,
+  EmergencyHelpline
 } from '../types';
 import { MORRELGANJ_UPAZILA_INFO } from '../data/morrelgonjRegionData';
 import { BusScheduleView } from './BusScheduleView';
@@ -62,6 +64,8 @@ interface ModeratorDashboardProps {
   setAmbulancesList: React.Dispatch<React.SetStateAction<Ambulance[]>>;
   officesList: GovtOffice[];
   setOfficesList: React.Dispatch<React.SetStateAction<GovtOffice[]>>;
+  helplinesList?: EmergencyHelpline[];
+  setHelplinesList?: React.Dispatch<React.SetStateAction<EmergencyHelpline[]>>;
   busSchedules?: BusSchedule[];
   setBusSchedules?: React.Dispatch<React.SetStateAction<BusSchedule[]>>;
   ticketCounters?: TicketCounter[];
@@ -89,6 +93,8 @@ export const ModeratorDashboard: React.FC<ModeratorDashboardProps> = ({
   setAmbulancesList,
   officesList,
   setOfficesList,
+  helplinesList = [],
+  setHelplinesList,
   busSchedules = [],
   setBusSchedules,
   ticketCounters = [],
@@ -106,16 +112,17 @@ export const ModeratorDashboard: React.FC<ModeratorDashboardProps> = ({
     canManageDonors: true,
     canManageHospitals: true,
     canManageAmbulances: true,
-    canManageOffices: true
+    canManageOffices: true,
+    canManageEmergencyHelplines: true
   },
   facebookSettings = { pageId: '', pageAccessToken: '', autoPostEnabled: true }
 }) => {
-  // Navigation active tab: 'map3d' | 'news' | 'donors' | 'hospitals' | 'ambulances' | 'offices' | 'buses'
-  type ModTabType = 'map3d' | 'news' | 'donors' | 'hospitals' | 'ambulances' | 'offices' | 'buses';
+  // Navigation active tab: 'map3d' | 'news' | 'donors' | 'hospitals' | 'ambulances' | 'offices' | 'buses' | 'helplines'
+  type ModTabType = 'map3d' | 'news' | 'donors' | 'hospitals' | 'ambulances' | 'offices' | 'buses' | 'helplines';
   const [internalActiveTab, setInternalActiveTab] = useState<ModTabType>('news');
   const [isModHamburgerOpen, setIsModHamburgerOpen] = useState(false);
 
-  const activeTab = (externalActiveTab && ['map3d', 'news', 'donors', 'hospitals', 'ambulances', 'offices', 'buses'].includes(externalActiveTab))
+  const activeTab = (externalActiveTab && ['map3d', 'news', 'donors', 'hospitals', 'ambulances', 'offices', 'buses', 'helplines'].includes(externalActiveTab))
     ? (externalActiveTab as ModTabType)
     : internalActiveTab;
 
@@ -177,6 +184,14 @@ export const ModeratorDashboard: React.FC<ModeratorDashboardProps> = ({
       subtitle: 'উপজেলার জরুরি ড্রাইভার ও গাড়ি',
       icon: Truck,
       allowed: moderatorPermissions.canManageAmbulances
+    },
+    {
+      id: 'helplines',
+      title: `জরুরি হেল্পলাইন নম্বর (${helplinesList.length})`,
+      shortLabel: 'জরুরি হেল্পলাইন',
+      subtitle: 'থানা, ফায়ার সার্ভিস, হাসপাতাল ও হটলাইন',
+      icon: PhoneCall,
+      allowed: moderatorPermissions.canManageEmergencyHelplines
     },
     {
       id: 'offices',

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, ShieldCheck, CheckCircle2, User, Phone, Mail, MapPin, Briefcase, FileText, IdCard, Sparkles, Lock, Eye, EyeOff, CheckSquare, Square } from 'lucide-react';
 import { ModeratorApplication, MorrelganjUnion, ModeratorPermissions } from '../types';
+import { ALL_MORRELGANJ_UNIONS_LIST } from '../data/morrelgonjRegionData';
 
 interface ModeratorApplicationModalProps {
   isOpen: boolean;
@@ -8,23 +9,7 @@ interface ModeratorApplicationModalProps {
   onSubmitApplication: (application: Omit<ModeratorApplication, 'id' | 'status' | 'submittedAt'>) => void;
 }
 
-const UNIONS: MorrelganjUnion[] = [
-  'মোড়েলগঞ্জ সদর',
-  'পঞ্চকরণ',
-  'দৈবজ্ঞহাটি',
-  'বারইখালী',
-  'রামচন্দ্রপুর',
-  'চিঙ্গড়াখালী',
-  'হোগলাপাশা',
-  'পুটিখালী',
-  'বনগ্রাম',
-  'নিশানবাড়িয়া',
-  'জিউধরা',
-  'খাউলিয়া',
-  'তেলিগাতী',
-  'বহুরবুনিয়া',
-  'অন্যান্য'
-];
+const UNIONS = ALL_MORRELGANJ_UNIONS_LIST as MorrelganjUnion[];
 
 export const ModeratorApplicationModal: React.FC<ModeratorApplicationModalProps> = ({
   isOpen,

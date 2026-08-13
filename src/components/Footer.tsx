@@ -62,16 +62,6 @@ export const Footer: React.FC<FooterProps> = ({
                 </button>
               </li>
             )}
-            <li>
-              <a href="tel:01713241250" className="hover:text-emerald-400">
-                উপজেলা স্বাস্থ্য কমপ্লেক্স: 01713-241250
-              </a>
-            </li>
-            <li>
-              <a href="tel:01713374150" className="hover:text-emerald-400">
-                মোড়েলগঞ্জ থানা: 01713-374150
-              </a>
-            </li>
           </ul>
         </div>
 

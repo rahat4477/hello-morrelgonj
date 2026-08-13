@@ -51,7 +51,7 @@ import {
   TicketCounter,
   UpazilaRegion
 } from '../types';
-import { MORRELGANJ_UPAZILA_INFO } from '../data/morrelgonjRegionData';
+import { MORRELGANJ_UPAZILA_INFO, ALL_MORRELGANJ_UNIONS_LIST } from '../data/morrelgonjRegionData';
 import { BusScheduleView } from './BusScheduleView';
 import { Morrelganj3DMap } from './Morrelganj3DMap';
 
@@ -852,23 +852,8 @@ export const CitizenView: React.FC<CitizenViewProps> = ({
                   onChange={(e) => setSelectedUnion(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none bg-white font-medium"
                 >
-                  <option value="all">সকল ইউনিয়ন</option>
-                  {[
-                    'মোড়েলগঞ্জ সদর',
-                    'পঞ্চকরণ',
-                    'দৈবজ্ঞহাটি',
-                    'বারইখালী',
-                    'রামচন্দ্রপুর',
-                    'চিঙ্গড়াখালী',
-                    'হোগলাপাশা',
-                    'পুটিখালী',
-                    'বনগ্রাম',
-                    'নিশানবাড়িয়া',
-                    'জিউধরা',
-                    'খাউলিয়া',
-                    'তেলিগাতী',
-                    'বহুরবুনিয়া'
-                  ].map((u) => (
+                  <option value="all">সকল ইউনিয়ন ও পৌরসভা</option>
+                  {ALL_MORRELGANJ_UNIONS_LIST.map((u) => (
                     <option key={u} value={u}>
                       {u}
                     </option>

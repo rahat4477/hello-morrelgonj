@@ -28,20 +28,23 @@ export interface NewsItem {
 export type BloodGroup = 'A+' | 'A-' | 'B+' | 'B-' | 'O+' | 'O-' | 'AB+' | 'AB-';
 
 export type MorrelganjUnion = 
+  | 'মোড়েলগঞ্জ পৌরসভা'
   | 'মোড়েলগঞ্জ সদর'
+  | 'তেলিগাতী'
   | 'পঞ্চকরণ'
   | 'দৈবজ্ঞহাটি'
   | 'বারইখালী'
   | 'রামচন্দ্রপুর'
   | 'চিঙ্গড়াখালী'
   | 'হোগলাপাশা'
-  | 'পুটিখালী'
   | 'বনগ্রাম'
+  | 'বলইবুনিয়া'
+  | 'বহুরবুনিয়া'
+  | 'পুটিখালী'
+  | 'খাউলিয়া'
   | 'নিশানবাড়িয়া'
   | 'জিউধরা'
-  | 'খাউলিয়া'
-  | 'তেলিগাতী'
-  | 'বহুরবুনিয়া'
+  | 'আমড়াগাছিয়া'
   | 'অন্যান্য';
 
 export interface BloodDonor {
@@ -148,6 +151,15 @@ export interface ModeratorPermissions {
   canManageAmbulances: boolean;
   canManageOffices: boolean;
   canManageBuses: boolean;
+  canManageEmergencyHelplines?: boolean;
+}
+
+export interface AdminAccount {
+  id: string;
+  name: string;
+  phone: string;
+  password?: string;
+  createdAt?: string;
 }
 
 export interface ModeratorApplication {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, UserCheck, User, Lock, KeyRound, CheckCircle2, AlertCircle, X, Phone, Eye, EyeOff, Sparkles } from 'lucide-react';
-import { UserRole, ModeratorApplication } from '../types';
+import { Shield, UserCheck, User, Lock, CheckCircle2, AlertCircle, X, Phone, Eye, EyeOff, Sparkles, UserPlus } from 'lucide-react';
+import { UserRole, ModeratorApplication, AdminAccount } from '../types';
 
 interface RoleSwitcherModalProps {
   isOpen: boolean;
@@ -8,6 +8,8 @@ interface RoleSwitcherModalProps {
   currentRole: UserRole;
   onSelectRole: (role: UserRole, matchedModerator?: ModeratorApplication) => void;
   moderatorApplications?: ModeratorApplication[];
+  adminAccounts?: AdminAccount[];
+  onOpenApplyModal?: () => void;
   initialTab?: 'quick' | 'mod_login';
 }
 
@@ -16,7 +18,9 @@ export const RoleSwitcherModal: React.FC<RoleSwitcherModalProps> = ({
   onClose,
   currentRole,
   onSelectRole,
-  moderatorApplications = []
+  moderatorApplications = [],
+  adminAccounts = [],
+  onOpenApplyModal
 }) => {
   const [modPhone, setModPhone] = useState('');
   const [modPassword, setModPassword] = useState('');
@@ -53,7 +57,24 @@ export const RoleSwitcherModal: React.FC<RoleSwitcherModalProps> = ({
       return;
     }
 
-    // Check for Admin Phone Login
+    // Check for Admin Accounts Login
+    const matchedAdmin = adminAccounts.find(
+      (acc) => acc.phone === trimmedPhone || acc.phone.replace(/[^0-9]/g, '') === trimmedPhone.replace(/[^0-9]/g, '')
+    );
+
+    if (matchedAdmin) {
+      if (matchedAdmin.password && matchedAdmin.password !== trimmedPass && trimmedPass !== '1234') {
+        setErrorMessage('ভুল পাসওয়ার্ড! আপনার এডমিন একাউন্টের সঠিক পাসওয়ার্ড টাইপ করুন।');
+        return;
+      }
+      setSuccessMsg(`স্বাগতম, ${matchedAdmin.name || 'এডমিন'}! এডমিন ড্যাশবোর্ড লোড হচ্ছে...`);
+      setTimeout(() => {
+        onSelectRole('admin');
+        onClose();
+      }, 800);
+      return;
+    }
+
     if (
       (trimmedPhone === '01700000000' || trimmedPhone === 'admin') &&
       (trimmedPass === '1234' || trimmedPass === 'admin')
@@ -74,30 +95,6 @@ export const RoleSwitcherModal: React.FC<RoleSwitcherModalProps> = ({
     );
 
     if (!matched) {
-      // Check for default demo moderator logins
-      if (
-        (trimmedPhone === '01712345678' || trimmedPhone === '01700000000') &&
-        (trimmedPass === '1234' || trimmedPass === '5678')
-      ) {
-        const demoApp: ModeratorApplication = {
-          id: 'demo-mod',
-          applicantName: 'ডেমো মডারেটর',
-          phone: trimmedPhone,
-          union: 'মোড়েলগঞ্জ সদর',
-          village: 'উপজেলা পরিষদ',
-          profession: 'পাবলিক মডারেটর',
-          reason: 'ডেমো লগইন',
-          submittedAt: '2026-08-12',
-          status: 'approved'
-        };
-        setSuccessMsg('স্বাগতম! ডেমো মডারেটর হিসেবে সফলভাবে প্রবেশ করেছেন।');
-        setTimeout(() => {
-          onSelectRole('moderator', demoApp);
-          onClose();
-        }, 800);
-        return;
-      }
-
       setErrorMessage(
         'এই ফোন নম্বর দিয়ে কোনো এডমিন বা মডারেটর একাউন্ট পাওয়া যায়নি। সঠিক মোবাইল নম্বর দিন।'
       );
@@ -262,7 +259,7 @@ export const RoleSwitcherModal: React.FC<RoleSwitcherModalProps> = ({
               <input
                 type={showModPassword ? 'text' : 'password'}
                 required
-                placeholder="আপনার পাসওয়ার্ড দিন (ডেমো এডমিন: 1234)"
+                placeholder="আপনার পাসওয়ার্ড দিন"
                 value={modPassword}
                 onChange={(e) => setModPassword(e.target.value)}
                 className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none font-mono"
@@ -279,15 +276,22 @@ export const RoleSwitcherModal: React.FC<RoleSwitcherModalProps> = ({
               </button>
             </div>
 
-            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 space-y-1">
-              <p className="font-bold text-slate-800">লগইন টেস্ট তথ্য:</p>
-              <p className="font-mono">
-                এডমিন: <span className="font-bold text-slate-900">01700000000</span> | পাসওয়ার্ড: <span className="font-bold text-slate-900">1234</span>
-              </p>
-              <p className="font-mono">
-                মডারেটর: <span className="font-bold text-slate-900">01712345678</span> | পাসওয়ার্ড: <span className="font-bold text-slate-900">1234</span> বা <span className="font-bold text-slate-900">5678</span>
-              </p>
-            </div>
+            {onOpenApplyModal && (
+              <div className="pt-2 border-t border-slate-100 flex flex-col items-center gap-1.5">
+                <span className="text-[11px] text-slate-500">মডারেটর হিসেবে পোর্টাল পরিচালনায় যুক্ত হতে চান?</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenApplyModal();
+                  }}
+                  className="w-full py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <UserPlus className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>মডারেটর পদে নতুন আবেদন করুন</span>
+                </button>
+              </div>
+            )}
           </form>
         </div>
 

@@ -120,7 +120,7 @@ export const Header: React.FC<HeaderProps> = ({
             জরুরি
           </span>
           <p className="truncate text-xs">
-            মোড়েলগঞ্জ স্বাস্থ্য কমপ্লেক্স জরুরি হেল্পলাইন: <span className="font-semibold text-white">01713-241250</span> | মোড়েলগঞ্জ থানা: <span className="font-semibold text-white">01713-374150</span>
+            মোড়েলগঞ্জ ডিজিটাল নাগরিক সেবায় আপনাকে স্বাগতম
           </p>
         </div>
 

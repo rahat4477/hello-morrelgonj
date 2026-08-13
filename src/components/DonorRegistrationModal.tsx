@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { HeartHandshake, CheckCircle2, User, Phone, MapPin, Calendar, AlertCircle, X, ShieldAlert } from 'lucide-react';
 import { BloodDonor, BloodGroup, MorrelganjUnion } from '../types';
+import { ALL_MORRELGANJ_UNIONS_LIST } from '../data/morrelgonjRegionData';
 
 interface DonorRegistrationModalProps {
   isOpen: boolean;
@@ -8,23 +9,7 @@ interface DonorRegistrationModalProps {
   onSubmitDonor: (donorData: Omit<BloodDonor, 'id' | 'status' | 'registeredAt'>) => void;
 }
 
-const UNIONS_LIST: MorrelganjUnion[] = [
-  'মোড়েলগঞ্জ সদর',
-  'পঞ্চকরণ',
-  'দৈবজ্ঞহাটি',
-  'বারইখালী',
-  'রামচন্দ্রপুর',
-  'চিঙ্গড়াখালী',
-  'হোগলাপাশা',
-  'পুটিখালী',
-  'বনগ্রাম',
-  'নিশানবাড়িয়া',
-  'জিউধরা',
-  'খাউলিয়া',
-  'তেলিগাতী',
-  'বহুরবুনিয়া',
-  'অন্যান্য'
-];
+const UNIONS_LIST = ALL_MORRELGANJ_UNIONS_LIST as MorrelganjUnion[];
 
 const BLOOD_GROUPS: BloodGroup[] = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
 

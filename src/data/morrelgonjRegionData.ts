@@ -350,7 +350,48 @@ export const MORRELGANJ_REGIONS: UpazilaRegion[] = [
     colorTheme: '#166534',
     pathData: 'M 220,860 L 410,830 L 630,830 L 780,810 L 750,1000 L 300,1020 L 180,940 Z',
     centerPoint: { x: 485, y: 915 }
+  },
+  {
+    id: 'union-amragachhia',
+    name: 'আমড়াগাছিয়া ইউনিয়ন',
+    englishName: 'Amragachhia Union',
+    type: 'ইউনিয়ন',
+    areaSqKm: 25.1,
+    population: 24200,
+    literacyRate: '৬২.০%',
+    voterCount: 15800,
+    chairmanOrMayorName: 'ইউপি চেয়ারম্যান',
+    chairmanPhone: '01718-990011',
+    officeLocation: 'আমড়াগাছিয়া বাজার ইউপি ভবন',
+    totalVillagesOrWards: '৯টি ওয়ার্ড, ১২টি গ্রাম',
+    famousPlaces: ['আমড়াগাছিয়া বাজার', 'আমড়াগাছিয়া মাধ্যমিক বিদ্যালয়'],
+    description: 'কৃষি ও প্রাকৃতিক সৌন্দর্যে ভরপুর মোড়েলগঞ্জের অন্যতম ঐতিহ্যবাহী ইউনিয়ন।',
+    gridPos: { x: 42, y: 33, zHeight: 45 },
+    colorTheme: '#a855f7',
+    pathData: 'M 330,220 L 500,200 L 480,420 L 310,420 Z',
+    centerPoint: { x: 410, y: 310 }
   }
+];
+
+export const ALL_MORRELGANJ_UNIONS_LIST = [
+  'মোড়েলগঞ্জ পৌরসভা',
+  'মোড়েলগঞ্জ সদর',
+  'তেলিগাতী',
+  'পঞ্চকরণ',
+  'দৈবজ্ঞহাটি',
+  'বারইখালী',
+  'রামচন্দ্রপুর',
+  'চিঙ্গড়াখালী',
+  'হোগলাপাশা',
+  'বনগ্রাম',
+  'বলইবুনিয়া',
+  'বহুরবুনিয়া',
+  'পুটিখালী',
+  'খাউলিয়া',
+  'নিশানবাড়িয়া',
+  'জিউধরা',
+  'আমড়াগাছিয়া',
+  'অন্যান্য'
 ];
 
 export const MORRELGANJ_RIVERS = [
