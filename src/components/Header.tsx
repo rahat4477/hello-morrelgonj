@@ -27,9 +27,7 @@ import {
   Image,
   Bus,
   Globe,
-  Share2,
-  Smartphone,
-  Download
+  Share2
 } from 'lucide-react';
 import { UserRole } from '../types';
 
@@ -42,7 +40,6 @@ interface HeaderProps {
   onOpenDonorModal: () => void;
   onOpenModeratorModal?: () => void;
   onOpenAiDrawer: () => void;
-  onOpenAppModal?: () => void;
   pendingCount: number;
   onLogout?: () => void;
   pendingNewsCount?: number;
@@ -61,7 +58,6 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenDonorModal,
   onOpenModeratorModal,
   onOpenAiDrawer,
-  onOpenAppModal,
   pendingCount,
   onLogout,
   pendingNewsCount = 0,
@@ -129,16 +125,6 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-3">
-          {onOpenAppModal && (
-            <button
-              onClick={onOpenAppModal}
-              className="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-slate-950 px-2.5 py-0.5 rounded-md text-xs font-black transition-colors cursor-pointer shadow-2xs"
-            >
-              <Smartphone className="w-3.5 h-3.5" />
-              <span>📱 অ্যাপ ডাউনলোড</span>
-            </button>
-          )}
-
           <button
             onClick={onOpenEmergencyModal}
             className="flex items-center gap-1 bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-0.5 rounded-md text-xs font-medium transition-colors cursor-pointer"
@@ -214,16 +200,6 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Action Buttons Desktop */}
           <div className="hidden lg:flex items-center gap-3">
-            {onOpenAppModal && (
-              <button
-                onClick={onOpenAppModal}
-                className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-slate-950 px-3.5 py-2 rounded-xl text-xs font-black transition-all shadow-xs cursor-pointer border border-amber-400"
-              >
-                <Smartphone className="w-4 h-4 text-slate-950 animate-bounce" />
-                <span>অ্যান্ড্রয়েড অ্যাপ</span>
-              </button>
-            )}
-
             {onOpenModeratorModal && userRole === 'citizen' && (
               <button
                 onClick={onOpenModeratorModal}
@@ -253,17 +229,6 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* AI Helper & App trigger for mobile */}
           <div className="flex lg:hidden items-center gap-1.5 sm:gap-2 shrink-0">
-            {onOpenAppModal && (
-              <button
-                onClick={onOpenAppModal}
-                className="bg-amber-500 text-slate-950 p-2 rounded-xl border border-amber-400 cursor-pointer flex items-center gap-1 text-xs font-black shadow-2xs"
-                title="অ্যান্ড্রয়েড অ্যাপ ডাউনলোড"
-              >
-                <Smartphone className="w-4 h-4 text-slate-950" />
-                <span className="inline text-[11px] font-black">অ্যাপ</span>
-              </button>
-            )}
-
             <button
               onClick={onOpenAiDrawer}
               className="bg-emerald-50 text-emerald-700 p-2 rounded-xl border border-emerald-200 cursor-pointer flex items-center gap-1 text-xs font-semibold"
@@ -545,19 +510,6 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* Action shortcuts */}
               <div className="pt-2 border-t border-slate-800 space-y-2">
-                {onOpenAppModal && (
-                  <button
-                    onClick={() => {
-                      onOpenAppModal();
-                      setDrawerOpen(false);
-                    }}
-                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 py-2.5 rounded-xl text-xs font-extrabold cursor-pointer transition-all shadow-md"
-                  >
-                    <Smartphone className="w-4 h-4 text-slate-950" />
-                    <span>অ্যান্ড্রয়েড অ্যাপ ইনস্টল / ডাউনলোড</span>
-                  </button>
-                )}
-
                 {onOpenModeratorModal && userRole === 'citizen' && (
                   <button
                     onClick={() => {

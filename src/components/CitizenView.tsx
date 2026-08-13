@@ -78,7 +78,6 @@ interface CitizenViewProps {
   onOpenModeratorModal?: () => void;
   onOpenEmergencyModal: () => void;
   onOpenAiDrawer: () => void;
-  onOpenAppModal?: () => void;
 }
 
 export const CitizenView: React.FC<CitizenViewProps> = ({
@@ -99,8 +98,7 @@ export const CitizenView: React.FC<CitizenViewProps> = ({
   onOpenDonorModal,
   onOpenModeratorModal,
   onOpenEmergencyModal,
-  onOpenAiDrawer,
-  onOpenAppModal
+  onOpenAiDrawer
 }) => {
   // Global search input
   const [searchQuery, setSearchQuery] = useState('');
@@ -487,47 +485,6 @@ export const CitizenView: React.FC<CitizenViewProps> = ({
               )}
             </div>
           </div>
-
-          {/* Android App Download Featured Hero Section */}
-          {onOpenAppModal && (
-            <div className="bg-gradient-to-r from-sky-900 via-sky-800 to-emerald-800 text-white rounded-3xl p-5 sm:p-7 shadow-xl border border-sky-400/30 flex flex-col md:flex-row items-center justify-between gap-5 relative overflow-hidden">
-              <div className="absolute top-0 right-0 -mt-8 -mr-8 w-40 h-40 bg-sky-400/20 rounded-full blur-2xl pointer-events-none" />
-              
-              <div className="flex items-center gap-4 relative z-10">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 shadow-lg font-black text-2xl border-2 border-white">
-                  <Smartphone className="w-8 h-8 text-slate-950 animate-bounce" />
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                      মোবাইল অ্যাপ
-                    </span>
-                    <span className="text-sky-200 text-xs font-semibold flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                      অ্যান্ড্রয়েড ফোন ভার্সন
-                    </span>
-                  </div>
-                  <h3 className="text-lg sm:text-xl font-black text-white leading-tight">
-                    'হ্যালো মোড়েলগঞ্জ' অ্যাপ আপনার ফোনে ইনস্টল করা আছে কি?
-                  </h3>
-                  <p className="text-xs text-sky-100 max-w-xl">
-                    যদি আপনার ফোনে অ্যাপ না থাকে, তবে বিনামূল্যে ইনস্টল করে নিন। আর ইনস্টল করা থাকলে সরাসরি অ্যাপে প্রবেশ করতে পারবেন।
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3 w-full md:w-auto shrink-0 relative z-10 justify-end">
-                <button
-                  type="button"
-                  onClick={onOpenAppModal}
-                  className="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 border border-amber-300 group"
-                >
-                  <Download className="w-4 h-4 text-slate-950 group-hover:translate-y-0.5 transition-transform" />
-                  <span>অ্যাপ ইনস্টল / ওপেন করুন</span>
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Urgent Blood Need Banner */}
           <div className="bg-gradient-to-r from-rose-600 to-rose-800 text-white rounded-2xl p-5 shadow-lg flex flex-wrap items-center justify-between gap-4 border border-rose-500/30">
