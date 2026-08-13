@@ -190,19 +190,21 @@ export const ModeratorLoginPage: React.FC<ModeratorLoginPageProps> = ({
             </button>
           </form>
 
-          {/* Prominent Apply for Moderator Button */}
-          <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-2xl p-4 text-center space-y-2">
+          {/* Prominent Apply for Moderator Button & Refresh Button */}
+          <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-2xl p-4 text-center space-y-2.5">
             <p className="text-xs text-emerald-950 font-medium">
               আপনার ইউনিয়ন বা পৌরসভার সেবাসমূহ আপডেট করতে চান?
             </p>
-            <button
-              type="button"
-              onClick={onOpenApplyModal}
-              className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>মডারেটর পদে নতুন আবেদন করুন</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onOpenApplyModal}
+                className="flex-1 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>নতুন আবেদন করুন</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

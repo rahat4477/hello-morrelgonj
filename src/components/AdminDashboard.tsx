@@ -39,8 +39,11 @@ import {
   Zap,
   Bus,
   Share2,
-  HelpCircle
+  HelpCircle,
+  UserPlus
 } from 'lucide-react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import {
   NewsItem,
   BloodDonor,
@@ -738,6 +741,106 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     addLog('এডমিন সংশোধন/ডিলিট প্রত্যাখ্যান', `সংবাদ "${news.title}" এর অনুরোধ প্রত্যাখ্যাত হয়েছে।`);
   };
 
+  // Manual Firestore Sync for Moderator Applications
+  const [isSyncingMods, setIsSyncingMods] = useState(false);
+  const [modSyncNotice, setModSyncNotice] = useState<string | null>(null);
+
+  const handleManualSyncMods = async () => {
+    if (!setModeratorApplications) return;
+    setIsSyncingMods(true);
+    try {
+      const colRef = collection(db, 'moderatorApplications');
+      const snapshot = await getDocs(colRef);
+      if (!snapshot.empty) {
+        const fetchedItems: ModeratorApplication[] = snapshot.docs.map((docSnap) => ({
+          ...(docSnap.data() as ModeratorApplication),
+          id: docSnap.id
+        }));
+        setModeratorApplications((prev) => {
+          const map = new Map<string, ModeratorApplication>();
+          prev.forEach((item) => map.set(item.id, item));
+          fetchedItems.forEach((item) => map.set(item.id, item));
+          const merged = Array.from(map.values());
+          try {
+            localStorage.setItem('hello_morrelgonj_mod_apps', JSON.stringify(merged));
+          } catch (e) {}
+          return merged;
+        });
+        setModSyncNotice(`✅ ডাটাবেজ থেকে মোট ${fetchedItems.length}টি মডারেটর আবেদন সফলতা সহ রিফ্রেশ করা হয়েছে!`);
+      } else {
+        setModSyncNotice('ℹ️ ক্লাউড ডাটাবেজে বর্তমানে কোনো মডারেটর আবেদন পাওয়া যায়নি।');
+      }
+    } catch (err) {
+      console.error('Firestore sync error:', err);
+      setModSyncNotice('⚠️ ফায়ারবেস রিফ্রেশ ব্যর্থ। স্থানীয় ক্যাশ ডাটা সংরক্ষিত আছে।');
+    } finally {
+      setIsSyncingMods(false);
+      setTimeout(() => setModSyncNotice(null), 5000);
+    }
+  };
+
+  // Direct Moderator Entry by Admin
+  const [showAddModModal, setShowAddModModal] = useState(false);
+  const [directModName, setDirectModName] = useState('');
+  const [directModPhone, setDirectModPhone] = useState('');
+  const [directModPassword, setDirectModPassword] = useState('');
+  const [directModUnion, setDirectModUnion] = useState<MorrelganjUnion>('মোড়েলগঞ্জ সদর');
+  const [directModProfession, setDirectModProfession] = useState('পাবলিক সার্ভিস / সামাজিক কর্মী');
+  const [directModReason, setDirectModReason] = useState('এডমিন কর্তৃক সরাসরি নিবন্ধিত মডারেটর');
+  const [directModStatus, setDirectModStatus] = useState<'approved' | 'pending'>('approved');
+
+  const handleCreateDirectModerator = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!directModName.trim() || !directModPhone.trim() || !directModPassword.trim()) {
+      alert('অনুগ্রহ করে মডারেটরের নাম, মোবাইল ও পাসওয়ার্ড প্রদান করুন!');
+      return;
+    }
+
+    const newApp: ModeratorApplication = {
+      id: 'mod-app-admin-' + Date.now(),
+      applicantName: directModName.trim(),
+      phone: directModPhone.trim(),
+      password: directModPassword.trim(),
+      union: directModUnion,
+      village: 'সরাসরি এন্ট্রি',
+      profession: directModProfession.trim(),
+      reason: directModReason.trim(),
+      submittedAt: new Date().toISOString().split('T')[0],
+      status: directModStatus,
+      approvedPermissions: {
+        canManageMap3d: true,
+        canManageNews: true,
+        canManageDonors: true,
+        canManageHospitals: true,
+        canManageAmbulances: true,
+        canManageOffices: true,
+        canManageBuses: true
+      }
+    };
+
+    if (setModeratorApplications) {
+      setModeratorApplications((prev) => {
+        const updated = [newApp, ...prev.filter((a) => a.id !== newApp.id)];
+        try {
+          localStorage.setItem('hello_morrelgonj_mod_apps', JSON.stringify(updated));
+        } catch (e) {}
+        return updated;
+      });
+    }
+
+    saveToFirestore('moderatorApplications', newApp);
+    addLog(
+      'সরাসরি মডারেটর একাউন্ট তৈরি',
+      `এডমিন কর্তৃক সরাসরি ${newApp.applicantName} (${newApp.phone}) কে মডারেটর হিসেবে নিবন্ধিত ও ${directModStatus === 'approved' ? 'অনুমোদন' : 'পেন্ডিং রাখা'} করা হয়েছে।`
+    );
+
+    setShowAddModModal(false);
+    setDirectModName('');
+    setDirectModPhone('');
+    setDirectModPassword('');
+    alert(`মডারেটর ${newApp.applicantName} সফলভাবে যুক্ত করা হয়েছে!`);
+  };
+
   // New Item States for Admin Entry Forms
   const [newDonorName, setNewDonorName] = useState('');
   const [newDonorGroup, setNewDonorGroup] = useState<BloodGroup>('O+');
@@ -1171,7 +1274,35 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   নাগরিক মডারেটর আবেদনকারী তালিকা ({moderatorApplications.length})
                 </h3>
               </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={handleManualSyncMods}
+                  disabled={isSyncingMods}
+                  className="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-300 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  title="ফায়ারবেস ক্লাউড থেকে সর্বশেষ আবেদনসমূহ রিফ্রেশ করুন"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isSyncingMods ? 'animate-spin text-sky-600' : ''}`} />
+                  <span>{isSyncingMods ? 'সিঙ্কিং হচ্ছে...' : 'রিফ্রেশ ডাটা'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowAddModModal(true)}
+                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>সরাসরি মডারেটর যোগ করুন</span>
+                </button>
+              </div>
             </div>
+
+            {modSyncNotice && (
+              <div className="p-3 bg-sky-50 border border-sky-200 text-sky-900 rounded-xl text-xs font-semibold animate-fadeIn">
+                {modSyncNotice}
+              </div>
+            )}
 
             {moderatorApplications.length === 0 ? (
               <div className="text-center py-8 text-slate-500 text-xs">
@@ -2926,6 +3057,141 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Direct Add Moderator Modal */}
+      {showAddModModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base text-slate-900">সরাসরি নতুন মডারেটর এন্ট্রি</h3>
+                  <p className="text-[11px] text-slate-500">মডারেটরের তথ্য দিয়ে একাউন্ট তৈরি ও পারমিশন সেট করুন</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddModModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateDirectModerator} className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">মডারেটরের পূর্ণ নাম *</label>
+                <input
+                  type="text"
+                  required
+                  value={directModName}
+                  onChange={(e) => setDirectModName(e.target.value)}
+                  placeholder="যেমন: মোঃ জহিরুল ইসলাম"
+                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">লগইন মোবাইল নম্বর *</label>
+                  <input
+                    type="text"
+                    required
+                    value={directModPhone}
+                    onChange={(e) => setDirectModPhone(e.target.value)}
+                    placeholder="যেমন: 017xxxxxxxx"
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-mono font-medium focus:ring-2 focus:ring-emerald-500 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">পাসওয়ার্ড *</label>
+                  <input
+                    type="text"
+                    required
+                    value={directModPassword}
+                    onChange={(e) => setDirectModPassword(e.target.value)}
+                    placeholder="পাসওয়ার্ড লিখুন"
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-mono font-medium focus:ring-2 focus:ring-emerald-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">ইউনিয়ন / এলাকা</label>
+                  <select
+                    value={directModUnion}
+                    onChange={(e) => setDirectModUnion(e.target.value as MorrelganjUnion)}
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-medium bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                  >
+                    <option value="মোড়েলগঞ্জ পৌরসভা">মোড়েলগঞ্জ পৌরসভা</option>
+                    <option value="মোড়েলগঞ্জ সদর">মোড়েলগঞ্জ সদর</option>
+                    <option value="তেলিগাতী">তেলিগাতী</option>
+                    <option value="পঞ্চকরণ">পঞ্চকরণ</option>
+                    <option value="দৈবজ্ঞহাটি">দৈবজ্ঞহাটি</option>
+                    <option value="বারইখালী">বারইখালী</option>
+                    <option value="রামচন্দ্রপুর">রামচন্দ্রপুর</option>
+                    <option value="চিঙ্গড়াখালী">চিঙ্গড়াখালী</option>
+                    <option value="হোগলাপাশা">হোগলাপাশা</option>
+                    <option value="বনগ্রাম">বনগ্রাম</option>
+                    <option value="বলইবুনিয়া">বলইবুনিয়া</option>
+                    <option value="বহুরবুনিয়া">বহুরবুনিয়া</option>
+                    <option value="পুটিখালী">পুটিখালী</option>
+                    <option value="খাউলিয়া">খাউলিয়া</option>
+                    <option value="নিশানবাড়িয়া">নিশানবাড়িয়া</option>
+                    <option value="জিউধরা">জিউধরা</option>
+                    <option value="আমড়াগাছিয়া">আমড়াগাছিয়া</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">প্রাথমিক স্ট্যাটাস</label>
+                  <select
+                    value={directModStatus}
+                    onChange={(e) => setDirectModStatus(e.target.value as 'approved' | 'pending')}
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-bold bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                  >
+                    <option value="approved">অনুমোদিত (Approved - এখনই লগইন পারবে)</option>
+                    <option value="pending">পেন্ডিং (Pending - মূল্যায়নে থাকবে)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">পেশা / পদবী</label>
+                <input
+                  type="text"
+                  value={directModProfession}
+                  onChange={(e) => setDirectModProfession(e.target.value)}
+                  placeholder="যেমন: শিক্ষক / ব্যবসায়ী / সামাজিক কর্মী"
+                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModModal(false)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-1.5"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>মডারেটর হিসেবে যুক্ত করুন</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

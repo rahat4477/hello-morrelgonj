@@ -132,8 +132,19 @@ export default function App() {
   const [upazilaInfo, setUpazilaInfo] = useState<typeof MORRELGANJ_UPAZILA_INFO>(MORRELGANJ_UPAZILA_INFO);
   const [systemLogs, setSystemLogs] = useState<SystemLog[]>(INITIAL_LOGS);
 
-  // Moderator Applications State
-  const [moderatorApplications, setModeratorApplications] = useState<ModeratorApplication[]>([]);
+  // Moderator Applications State with LocalStorage Caching
+  const [moderatorApplications, setModeratorApplications] = useState<ModeratorApplication[]>(() => {
+    try {
+      const saved = localStorage.getItem('hello_morrelgonj_mod_apps');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('Error reading cached moderator applications:', e);
+    }
+    return [];
+  });
 
   // Admin Accounts State
   const INITIAL_ADMIN_ACCOUNTS: AdminAccount[] = [
@@ -146,6 +157,22 @@ export default function App() {
     }
   ];
   const [adminAccounts, setAdminAccounts] = useState<AdminAccount[]>(INITIAL_ADMIN_ACCOUNTS);
+
+  // Custom setter for moderatorApplications to sync with localStorage
+  const updateModeratorApplicationsState = React.useCallback(
+    (action: React.SetStateAction<ModeratorApplication[]>) => {
+      setModeratorApplications((prev) => {
+        const next = typeof action === 'function' ? action(prev) : action;
+        try {
+          localStorage.setItem('hello_morrelgonj_mod_apps', JSON.stringify(next));
+        } catch (e) {
+          console.warn('Error persisting moderator applications:', e);
+        }
+        return next;
+      });
+    },
+    []
+  );
 
   // Firestore Real-Time Cloud Sync
   useFirestoreSync('news', INITIAL_NEWS, setNewsList);
@@ -166,7 +193,25 @@ export default function App() {
     }
   });
   useFirestoreSync('logs', INITIAL_LOGS, setSystemLogs);
-  useFirestoreSync('moderatorApplications', [], setModeratorApplications);
+
+  // Moderator applications firestore sync with smart merging
+  useFirestoreSync<ModeratorApplication>('moderatorApplications', [], (data) => {
+    if (Array.isArray(data)) {
+      setModeratorApplications((prev) => {
+        const map = new Map<string, ModeratorApplication>();
+        // Keep existing local ones first
+        prev.forEach((item) => map.set(item.id, item));
+        // Update/overwrite with real-time firestore data
+        data.forEach((item) => map.set(item.id, item));
+        const merged = Array.from(map.values());
+        try {
+          localStorage.setItem('hello_morrelgonj_mod_apps', JSON.stringify(merged));
+        } catch (e) {}
+        return merged;
+      });
+    }
+  });
+
   useFirestoreSync('admin_accounts', INITIAL_ADMIN_ACCOUNTS, setAdminAccounts);
 
   // Facebook Auto-Post Settings State
@@ -270,7 +315,7 @@ export default function App() {
       status: 'pending',
       submittedAt: new Date().toISOString().split('T')[0]
     };
-    setModeratorApplications((prev) => [newApp, ...prev]);
+    updateModeratorApplicationsState((prev) => [newApp, ...prev.filter(a => a.id !== newApp.id)]);
     saveToFirestore('moderatorApplications', newApp);
     addLog('মডারেটর আবেদন জমা', `${appData.applicantName} (${appData.union}) এর মডারেটর পদে আবেদন প্রাপ্ত হয়েছে।`);
   };
