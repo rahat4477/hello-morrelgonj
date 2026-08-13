@@ -49,7 +49,8 @@ export const AppDownloadModal: React.FC<AppDownloadModalProps> = ({
     const isInStandaloneMode =
       window.matchMedia('(display-mode: standalone)').matches ||
       (navigator as any).standalone === true ||
-      window.location.search.includes('mode=app');
+      window.location.search.includes('mode=app') ||
+      localStorage.getItem('is_app_mode') === 'true';
     setIsStandalone(isInStandaloneMode);
 
     // Listen for browser PWA install prompt
@@ -60,12 +61,33 @@ export const AppDownloadModal: React.FC<AppDownloadModalProps> = ({
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
+    // Escape key press handler to close modal
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleModalClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [isOpen]);
 
-  if (!isOpen) return null;
+  const handleModalClose = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    sessionStorage.setItem('hello_morrelganj_app_prompted', 'true');
+    localStorage.setItem('hello_morrelganj_app_dismissed', 'true');
+    onClose();
+  };
+
+  if (!isOpen || isStandalone) return null;
 
   const handleInstallApp = async () => {
     if (deferredPrompt) {
@@ -122,18 +144,22 @@ export const AppDownloadModal: React.FC<AppDownloadModalProps> = ({
     setSelectedQuestion('yes');
     setInstalledAppNotice(true);
 
-    // Store user preference
+    // Store user preference for app mode
     localStorage.setItem('hello_morrelganj_app_choice', 'installed');
+    localStorage.setItem('is_app_mode', 'true');
+    sessionStorage.setItem('is_app_mode', 'true');
 
     setTimeout(() => {
       if (onOpenAppMode) {
         onOpenAppMode();
       } else {
-        // Try deep linking or standalone view
-        window.location.href = `${window.location.origin}/?mode=app`;
+        // Add mode query to URL without hard reload if possible
+        const url = new URL(window.location.href);
+        url.searchParams.set('mode', 'app');
+        window.history.replaceState({}, '', url.toString());
       }
       onClose();
-    }, 1200);
+    }, 800);
   };
 
   const handleNoInstallApp = () => {
@@ -143,8 +169,14 @@ export const AppDownloadModal: React.FC<AppDownloadModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-sky-100 overflow-hidden space-y-0 my-auto">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-200 cursor-pointer"
+      onClick={handleModalClose}
+    >
+      <div
+        className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-sky-100 overflow-hidden space-y-0 my-auto cursor-default"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Top Decorative Header */}
         <div className="bg-gradient-to-r from-sky-900 via-sky-800 to-emerald-800 text-white p-5 sm:p-6 relative overflow-hidden">
           {/* Background Graphic Accents */}
@@ -153,11 +185,11 @@ export const AppDownloadModal: React.FC<AppDownloadModalProps> = ({
 
           <button
             type="button"
-            onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-sky-200 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
+            onClick={handleModalClose}
+            className="absolute top-4 right-4 p-2 text-sky-200 hover:text-white hover:bg-white/20 rounded-full transition-colors cursor-pointer z-30"
             title="বন্ধ করুন"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </button>
 
           <div className="flex items-center gap-3.5 relative z-10">
@@ -326,7 +358,7 @@ export const AppDownloadModal: React.FC<AppDownloadModalProps> = ({
 
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleModalClose}
               className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
             >
               ওয়েবসাইটে থাকুন

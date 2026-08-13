@@ -203,10 +203,22 @@ export default function App() {
   const [isAiDrawerOpen, setIsAiDrawerOpen] = useState(false);
   const [isAppModalOpen, setIsAppModalOpen] = useState(false);
 
-  // Auto-Prompt for Mobile / Android App Installation
+  // Standalone / Mobile App Mode state
+  const [isAppMode, setIsAppMode] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    const isQueryAppMode = params.get('mode') === 'app' || params.get('app') === 'true' || window.location.hash.includes('mode=app');
+    const isStandaloneMatch = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true;
+    const isStorageAppMode = localStorage.getItem('is_app_mode') === 'true' || sessionStorage.getItem('is_app_mode') === 'true';
+
+    return isQueryAppMode || isStandaloneMatch || isStorageAppMode;
+  });
+
+  // Auto-Prompt for Mobile / Android App Installation (only in web browser mode)
   React.useEffect(() => {
+    if (isAppMode) return;
     const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent);
-    const hasBeenPrompted = sessionStorage.getItem('hello_morrelganj_app_prompted');
+    const hasBeenPrompted = sessionStorage.getItem('hello_morrelganj_app_prompted') || localStorage.getItem('hello_morrelganj_app_dismissed');
     
     if (isMobile && !hasBeenPrompted) {
       const timer = setTimeout(() => {
@@ -215,7 +227,7 @@ export default function App() {
       }, 1800);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [isAppMode]);
 
   // URL Routing & Path Listener (/moderator, /admin, #moderator)
   const [routePath, setRoutePath] = useState<string>(
@@ -310,7 +322,7 @@ export default function App() {
         onOpenDonorModal={() => setIsDonorModalOpen(true)}
         onOpenModeratorModal={() => setIsModeratorModalOpen(true)}
         onOpenAiDrawer={() => setIsAiDrawerOpen(true)}
-        onOpenAppModal={() => setIsAppModalOpen(true)}
+        onOpenAppModal={isAppMode ? undefined : () => setIsAppModalOpen(true)}
         pendingCount={totalPending}
         pendingNewsCount={pendingNewsCount}
         pendingDonorsCount={pendingDonorsCount}
@@ -441,7 +453,7 @@ export default function App() {
             onOpenModeratorModal={() => setIsModeratorModalOpen(true)}
             onOpenEmergencyModal={() => setIsEmergencyModalOpen(true)}
             onOpenAiDrawer={() => setIsAiDrawerOpen(true)}
-            onOpenAppModal={() => setIsAppModalOpen(true)}
+            onOpenAppModal={isAppMode ? undefined : () => setIsAppModalOpen(true)}
           />
         )}
       </main>
@@ -454,7 +466,7 @@ export default function App() {
         onOpenEmergencyModal={() => setIsEmergencyModalOpen(true)}
         onOpenDonorModal={() => setIsDonorModalOpen(true)}
         onOpenModeratorModal={() => setIsModeratorModalOpen(true)}
-        onOpenAppModal={() => setIsAppModalOpen(true)}
+        onOpenAppModal={isAppMode ? undefined : () => setIsAppModalOpen(true)}
       />
 
       {/* Modals */}
@@ -511,12 +523,15 @@ export default function App() {
         userRole={userRole}
       />
 
-      <AppDownloadModal
-        isOpen={isAppModalOpen}
-        onClose={() => setIsAppModalOpen(false)}
-        siteLogo={siteLogo}
-        siteFavicon={siteFavicon}
-      />
+      {!isAppMode && (
+        <AppDownloadModal
+          isOpen={isAppModalOpen}
+          onClose={() => setIsAppModalOpen(false)}
+          siteLogo={siteLogo}
+          siteFavicon={siteFavicon}
+          onOpenAppMode={() => setIsAppMode(true)}
+        />
+      )}
     </div>
   );
 }
