@@ -1,0 +1,23 @@
+{
+  "short_name": "হ্যালো মোড়েলগঞ্জ",
+  "name": "হ্যালো মোড়েলগঞ্জ - ডিজিটাল উপজেলা সেবা পোর্টাল",
+  "icons": [
+    {
+      "src": "/logo.jpg",
+      "type": "image/jpeg",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/logo.jpg",
+      "type": "image/jpeg",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0369a1",
+  "theme_color": "#0369a1",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "description": "বাগেরহাট জেলার মোড়েলগঞ্জ উপজেলার সকল সেবার এক প্ল্যাটফর্ম"
+}

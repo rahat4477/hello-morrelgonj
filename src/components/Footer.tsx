@@ -1,11 +1,12 @@
 import React from 'react';
-import { Heart, Phone, MapPin, Shield, UserCheck } from 'lucide-react';
+import { Heart, Phone, MapPin, Shield, UserCheck, Smartphone } from 'lucide-react';
 
 interface FooterProps {
   onOpenRoleModal: () => void;
   onOpenEmergencyModal: () => void;
   onOpenDonorModal: () => void;
   onOpenModeratorModal?: () => void;
+  onOpenAppModal?: () => void;
   siteLogo?: string;
   siteFavicon?: string;
 }
@@ -15,6 +16,7 @@ export const Footer: React.FC<FooterProps> = ({
   onOpenEmergencyModal,
   onOpenDonorModal,
   onOpenModeratorModal,
+  onOpenAppModal,
   siteLogo = '/logo.jpg',
   siteFavicon
 }) => {
@@ -54,6 +56,14 @@ export const Footer: React.FC<FooterProps> = ({
                 নতুন রক্তদাতা নিবন্ধন
               </button>
             </li>
+            {onOpenAppModal && (
+              <li>
+                <button onClick={onOpenAppModal} className="hover:text-amber-400 cursor-pointer flex items-center gap-1 text-amber-300 font-bold">
+                  <Smartphone className="w-3.5 h-3.5 text-amber-400" />
+                  <span>অ্যান্ড্রয়েড অ্যাপ ইনস্টল / ডাউনলোড</span>
+                </button>
+              </li>
+            )}
             {onOpenModeratorModal && (
               <li>
                 <button onClick={onOpenModeratorModal} className="hover:text-sky-400 cursor-pointer flex items-center gap-1 text-sky-300 font-semibold">
