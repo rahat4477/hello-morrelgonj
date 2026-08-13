@@ -69,13 +69,27 @@ export async function clearCollectionInFirestore(collectionName: string) {
   }
 }
 
+// Helper function to remove undefined properties from objects before saving to Firestore
+function cleanUndefined<T>(obj: T): T {
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(cleanUndefined) as unknown as T;
+  const cleaned: Record<string, any> = {};
+  for (const [key, val] of Object.entries(obj)) {
+    if (val !== undefined) {
+      cleaned[key] = cleanUndefined(val);
+    }
+  }
+  return cleaned as T;
+}
+
 // Helper function to persist changes to Firestore
 export async function saveToFirestore<T extends { id: string }>(
   collectionName: string,
   item: T
 ) {
   try {
-    await setDoc(doc(db, collectionName, item.id), item, { merge: true });
+    const cleanedItem = cleanUndefined(item);
+    await setDoc(doc(db, collectionName, item.id), cleanedItem as any, { merge: true });
   } catch (err) {
     console.error(`Error saving to Firestore (${collectionName}):`, err);
   }
