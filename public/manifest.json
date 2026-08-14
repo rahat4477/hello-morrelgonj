@@ -1,23 +1,76 @@
 {
-  "short_name": "হ্যালো মোড়েলগঞ্জ",
+  "id": "com.hellomorrelgonj.app",
   "name": "হ্যালো মোড়েলগঞ্জ - ডিজিটাল উপজেলা সেবা পোর্টাল",
+  "short_name": "হ্যালো মোড়েলগঞ্জ",
+  "description": "বাগেরহাট জেলার মোড়েলগঞ্জ উপজেলার জরুরি স্বাস্থ্যসেবা, রক্তদাতা, ডাক্তার, অ্যাম্বুলেন্স ও সকল নাগরিক তথ্যের এক সমন্বিত ডিজিটাল প্ল্যাটফর্ম।",
+  "lang": "bn",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0369a1",
+  "theme_color": "#0369a1",
+  "categories": [
+    "lifestyle",
+    "utilities",
+    "social",
+    "news"
+  ],
   "icons": [
     {
       "src": "/logo.jpg",
       "type": "image/jpeg",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any"
     },
     {
       "src": "/logo.jpg",
       "type": "image/jpeg",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.jpg",
+      "type": "image/jpeg",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/logo.jpg",
+      "type": "image/jpeg",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.jpg",
+      "type": "image/jpeg",
+      "sizes": "96x96",
+      "purpose": "any"
     }
   ],
-  "start_url": "/",
-  "background_color": "#0369a1",
-  "theme_color": "#0369a1",
-  "display": "standalone",
-  "orientation": "portrait",
-  "scope": "/",
-  "description": "বাগেরহাট জেলার মোড়েলগঞ্জ উপজেলার সকল সেবার এক প্ল্যাটফর্ম"
+  "shortcuts": [
+    {
+      "name": "জরুরি যোগাযোগ",
+      "short_name": "জরুরি",
+      "description": "হাসপাতাল, পুলিশ ও ফায়ার সার্ভিসের জরুরি নম্বর",
+      "url": "/#emergency",
+      "icons": [{ "src": "/favicon.jpg", "sizes": "96x96" }]
+    },
+    {
+      "name": "রক্তদাতা খুঁজুন",
+      "short_name": "রক্তদাতা",
+      "description": "মোড়েলগঞ্জের নিবন্ধিত রক্তদাতাদের তালিকা",
+      "url": "/#blood",
+      "icons": [{ "src": "/favicon.jpg", "sizes": "96x96" }]
+    },
+    {
+      "name": "জরুরি সেবা ও হটলাইন",
+      "short_name": "সেবা",
+      "description": "উপজেলা প্রশাসনের সকল অফিসিয়াল যোগাযোগ",
+      "url": "/#services",
+      "icons": [{ "src": "/favicon.jpg", "sizes": "96x96" }]
+    }
+  ],
+  "prefer_related_applications": false
 }
