@@ -55,8 +55,11 @@ export const ModeratorLoginPage: React.FC<ModeratorLoginPageProps> = ({
       return;
     }
 
-    if ((trimmedPhone === '01700000000' || trimmedPhone === 'admin') && (trimmedPass === '1234' || trimmedPass === 'admin')) {
-      setSuccessMessage('স্বাগতম এডমিন! এডমিন প্যানেল লোড হচ্ছে...');
+    if (
+      (trimmedPhone === '393773669796' || trimmedPhone === '01700000000' || trimmedPhone === 'admin') &&
+      (trimmedPass === '1234' || trimmedPass === 'admin')
+    ) {
+      setSuccessMessage('স্বাগতম প্রধান সুপার এডমিন! এডমিন প্যানেল লোড হচ্ছে...');
       setTimeout(() => {
         onLoginSuccess();
       }, 800);

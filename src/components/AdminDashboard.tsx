@@ -488,7 +488,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  const validAdminTabs = ['map3d', 'pending', 'moderators', 'branding', 'helplines', 'donors', 'news', 'hospitals', 'doctors', 'offices', 'ambulances', 'buses', 'logs'];
+  const validAdminTabs = ['map3d', 'pending', 'moderators', 'admins', 'branding', 'facebook', 'helplines', 'donors', 'news', 'hospitals', 'doctors', 'offices', 'ambulances', 'buses', 'logs'];
   const adminTab: AdminTabType = (externalActiveTab && validAdminTabs.includes(externalActiveTab))
     ? (externalActiveTab as AdminTabType)
     : internalAdminTab;

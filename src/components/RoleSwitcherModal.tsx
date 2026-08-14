@@ -76,10 +76,10 @@ export const RoleSwitcherModal: React.FC<RoleSwitcherModalProps> = ({
     }
 
     if (
-      (trimmedPhone === '01700000000' || trimmedPhone === 'admin') &&
+      (trimmedPhone === '393773669796' || trimmedPhone === '01700000000' || trimmedPhone === 'admin') &&
       (trimmedPass === '1234' || trimmedPass === 'admin')
     ) {
-      setSuccessMsg('স্বাগতম এডমিন! এডমিন ড্যাশবোর্ড লোড হচ্ছে...');
+      setSuccessMsg('স্বাগতম প্রধান সুপার এডমিন! এডমিন ড্যাশবোর্ড লোড হচ্ছে...');
       setTimeout(() => {
         onSelectRole('admin');
         onClose();

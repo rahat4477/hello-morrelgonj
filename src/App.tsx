@@ -44,7 +44,9 @@ import {
   INITIAL_LOGS,
   INITIAL_HELPLINES,
   INITIAL_BUS_SCHEDULES,
-  INITIAL_BUS_COUNTERS
+  INITIAL_BUS_COUNTERS,
+  INITIAL_MODERATOR_APPLICATIONS,
+  INITIAL_ADMIN_ACCOUNTS
 } from './data/morrelgonjInitialData';
 import {
   MORRELGANJ_REGIONS,
@@ -132,7 +134,7 @@ export default function App() {
   const [upazilaInfo, setUpazilaInfo] = useState<typeof MORRELGANJ_UPAZILA_INFO>(MORRELGANJ_UPAZILA_INFO);
   const [systemLogs, setSystemLogs] = useState<SystemLog[]>(INITIAL_LOGS);
 
-  // Moderator Applications State with LocalStorage Caching
+  // Moderator Applications State with LocalStorage Caching & Initial Seed
   const [moderatorApplications, setModeratorApplications] = useState<ModeratorApplication[]>(() => {
     try {
       const saved = localStorage.getItem('hello_morrelgonj_mod_apps');
@@ -143,20 +145,28 @@ export default function App() {
     } catch (e) {
       console.warn('Error reading cached moderator applications:', e);
     }
-    return [];
+    return INITIAL_MODERATOR_APPLICATIONS;
   });
 
-  // Admin Accounts State
-  const INITIAL_ADMIN_ACCOUNTS: AdminAccount[] = [
-    {
-      id: 'admin-1',
-      name: 'প্রধান এডমিন (অফিসিয়াল)',
-      phone: '01700000000',
-      password: '1234',
-      createdAt: '2026-08-12'
+  // Admin Accounts State with Super Admin phone 393773669796
+  const [adminAccounts, setAdminAccounts] = useState<AdminAccount[]>(() => {
+    try {
+      const saved = localStorage.getItem('morrelgonj_admin_accounts');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((acc: AdminAccount) =>
+            acc.id === 'admin-1' || acc.phone === '01700000000'
+              ? { ...acc, phone: '393773669796' }
+              : acc
+          );
+        }
+      }
+    } catch (e) {
+      console.warn('Error reading cached admin accounts:', e);
     }
-  ];
-  const [adminAccounts, setAdminAccounts] = useState<AdminAccount[]>(INITIAL_ADMIN_ACCOUNTS);
+    return INITIAL_ADMIN_ACCOUNTS;
+  });
 
   // Custom setter for moderatorApplications to sync with localStorage
   const updateModeratorApplicationsState = React.useCallback(
@@ -167,6 +177,22 @@ export default function App() {
           localStorage.setItem('hello_morrelgonj_mod_apps', JSON.stringify(next));
         } catch (e) {
           console.warn('Error persisting moderator applications:', e);
+        }
+        return next;
+      });
+    },
+    []
+  );
+
+  // Custom setter for adminAccounts to sync with localStorage
+  const updateAdminAccountsState = React.useCallback(
+    (action: React.SetStateAction<AdminAccount[]>) => {
+      setAdminAccounts((prev) => {
+        const next = typeof action === 'function' ? action(prev) : action;
+        try {
+          localStorage.setItem('morrelgonj_admin_accounts', JSON.stringify(next));
+        } catch (e) {
+          console.warn('Error persisting admin accounts:', e);
         }
         return next;
       });
@@ -195,24 +221,41 @@ export default function App() {
   useFirestoreSync('logs', INITIAL_LOGS, setSystemLogs);
 
   // Moderator applications firestore sync with smart merging
-  useFirestoreSync<ModeratorApplication>('moderatorApplications', [], (data) => {
+  useFirestoreSync<ModeratorApplication>('moderatorApplications', INITIAL_MODERATOR_APPLICATIONS, (data) => {
     if (Array.isArray(data)) {
-      setModeratorApplications((prev) => {
+      updateModeratorApplicationsState((prev) => {
         const map = new Map<string, ModeratorApplication>();
         // Keep existing local ones first
         prev.forEach((item) => map.set(item.id, item));
         // Update/overwrite with real-time firestore data
         data.forEach((item) => map.set(item.id, item));
-        const merged = Array.from(map.values());
-        try {
-          localStorage.setItem('hello_morrelgonj_mod_apps', JSON.stringify(merged));
-        } catch (e) {}
-        return merged;
+        return Array.from(map.values());
       });
     }
   });
 
-  useFirestoreSync('admin_accounts', INITIAL_ADMIN_ACCOUNTS, setAdminAccounts);
+  // Admin accounts firestore sync with automatic migration to Super Admin phone 393773669796
+  useFirestoreSync<AdminAccount>('admin_accounts', INITIAL_ADMIN_ACCOUNTS, (data) => {
+    if (Array.isArray(data) && data.length > 0) {
+      const sanitized = data.map((acc) => {
+        if ((acc.id === 'admin-1' && acc.phone === '01700000000') || acc.phone === '01700000000') {
+          const updated = { ...acc, phone: '393773669796' };
+          saveToFirestore('admin_accounts', updated);
+          return updated;
+        }
+        return acc;
+      });
+      const hasSuperAdmin = sanitized.some((a) => a.phone === '393773669796' || a.id === 'admin-1');
+      if (!hasSuperAdmin) {
+        sanitized.unshift(INITIAL_ADMIN_ACCOUNTS[0]);
+        saveToFirestore('admin_accounts', INITIAL_ADMIN_ACCOUNTS[0]);
+      }
+      updateAdminAccountsState(sanitized);
+    } else {
+      updateAdminAccountsState(INITIAL_ADMIN_ACCOUNTS);
+      saveToFirestore('admin_accounts', INITIAL_ADMIN_ACCOUNTS[0]);
+    }
+  });
 
   // Facebook Auto-Post Settings State
   const [facebookSettings, setFacebookSettings] = useState<FacebookSettings>({
@@ -378,7 +421,7 @@ export default function App() {
             moderatorPermissions={moderatorPermissions}
             setModeratorPermissions={setModeratorPermissions}
             moderatorApplications={moderatorApplications}
-            setModeratorApplications={setModeratorApplications}
+            setModeratorApplications={updateModeratorApplicationsState}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             siteLogo={siteLogo}
@@ -388,7 +431,7 @@ export default function App() {
             facebookSettings={facebookSettings}
             setFacebookSettings={setFacebookSettings}
             adminAccounts={adminAccounts}
-            setAdminAccounts={setAdminAccounts}
+            setAdminAccounts={updateAdminAccountsState}
           />
         ) : userRole === 'moderator' ? (
           <ModeratorDashboard

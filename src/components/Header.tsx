@@ -27,7 +27,8 @@ import {
   Image,
   Bus,
   Globe,
-  Share2
+  Share2,
+  Key
 } from 'lucide-react';
 import { UserRole } from '../types';
 
@@ -86,6 +87,7 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'map3d', label: 'মোড়েলগঞ্জ পরিচিতি', icon: Globe, badge: null, subtitle: '১৬ ইউনিয়ন ও ১ পৌরসভার তথ্য' },
     { id: 'pending', label: 'পেন্ডিং আবেদন ও পরিবর্তন', icon: AlertCircle, badge: pendingCount, subtitle: 'রক্তদাতা, তথ্য ও আবেদন রিভিউ' },
     { id: 'moderators', label: 'মডারেটর পারমিশন ও আবেদন', icon: UserCheck, badge: pendingModeratorAppsCount, subtitle: 'ফিচার এক্সেস কন্ট্রোল' },
+    { id: 'admins', label: 'এডমিন একাউন্ট ও সিকিউরিটি', icon: Key, badge: null, subtitle: 'ইউজারনেম, পাসওয়ার্ড ও নতুন এডমিন যোগ' },
     { id: 'branding', label: 'লোগো ও ফ্যাবআইকন সেটআপ', icon: Image, badge: null, subtitle: 'পোর্টালে লোগো ও আইকন আপলোড' },
     { id: 'facebook', label: 'ফেসবুক পেজ অটো-পোস্টিং', icon: Share2, badge: null, subtitle: 'সংবাদ সরাসরি ফেসবুক পেজে পোস্ট' },
     { id: 'buses', label: 'বাস সময়সূচী ও কাউন্টার', icon: Bus, badge: null, subtitle: 'বাস চলাচলের সময় ও ফোন নম্বর' },
