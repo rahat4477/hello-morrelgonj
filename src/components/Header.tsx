@@ -166,7 +166,16 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Brand Logo */}
         <div
           className="flex items-center gap-2 cursor-pointer shrink-0"
-          onClick={() => setActiveTab(userRole === 'moderator' ? 'news' : 'home')}
+          onClick={() => {
+            if (userRole === 'admin') {
+              setActiveTab('map3d');
+            } else if (userRole === 'moderator') {
+              setActiveTab('news');
+            } else {
+              setActiveTab('home');
+            }
+          }}
+          title={userRole === 'admin' ? 'এডমিন ড্যাশবোর্ড' : userRole === 'moderator' ? 'মডারেটর ড্যাশবোর্ড' : 'প্রচ্ছদ'}
         >
           {/* Favicon / Small Icon */}
           <div className="w-12 h-12 sm:w-11 sm:h-11 rounded-full p-0.5 flex items-center justify-center shadow-xs border border-emerald-500/30 shrink-0 overflow-hidden bg-transparent">
@@ -261,22 +270,47 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Navigation Desktop */}
       <div className="hidden lg:block bg-slate-900 text-slate-200 border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
-          <nav className="flex items-center gap-1 py-1">
-            {navItems.map((item) => {
+          <nav className="flex items-center gap-1 py-1 overflow-x-auto no-scrollbar">
+            {(userRole === 'admin'
+              ? adminNavItems.slice(0, 10)
+              : userRole === 'moderator'
+              ? moderatorNavItems
+              : navItems
+            ).map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
+              const badgeVal = ('badge' in item && typeof item.badge === 'number') ? item.badge : 0;
               return (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                     isActive
-                      ? 'bg-emerald-600 text-white font-bold shadow-xs'
+                      ? userRole === 'admin'
+                        ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
+                        : userRole === 'moderator'
+                        ? 'bg-sky-500 text-slate-950 font-black shadow-xs'
+                        : 'bg-emerald-600 text-white font-bold shadow-xs'
                       : 'text-slate-300 hover:text-white hover:bg-slate-800'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                  <Icon className={`w-3.5 h-3.5 ${
+                    isActive
+                      ? 'text-slate-950'
+                      : userRole === 'admin'
+                      ? 'text-amber-400'
+                      : userRole === 'moderator'
+                      ? 'text-sky-400'
+                      : 'text-slate-400'
+                  }`} />
                   <span>{item.label}</span>
+                  {badgeVal > 0 && (
+                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
+                      isActive ? 'bg-slate-950 text-amber-300' : 'bg-amber-500 text-slate-950'
+                    }`}>
+                      {badgeVal}
+                    </span>
+                  )}
                 </button>
               );
             })}

@@ -56,8 +56,35 @@ import { useFirestoreSync, saveToFirestore } from './lib/useFirestoreSync';
 import { ensureTransparentLogo } from './utils/imageUtils';
 
 export default function App() {
-  const [userRole, setUserRole] = useState<UserRole>('citizen');
-  const [activeTab, setActiveTab] = useState<string>('home');
+  const [userRole, setUserRole] = useState<UserRole>(() => {
+    try {
+      const saved = localStorage.getItem('morrelgonj_user_role');
+      if (saved === 'admin' || saved === 'moderator' || saved === 'citizen') {
+        return saved as UserRole;
+      }
+    } catch (e) {
+      console.warn('Error reading saved user role:', e);
+    }
+    return 'citizen';
+  });
+
+  const updateUserRole = (newRole: UserRole) => {
+    setUserRole(newRole);
+    try {
+      localStorage.setItem('morrelgonj_user_role', newRole);
+    } catch (e) {
+      console.warn('Error persisting user role:', e);
+    }
+  };
+
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    try {
+      const savedRole = localStorage.getItem('morrelgonj_user_role');
+      if (savedRole === 'admin') return 'map3d';
+      if (savedRole === 'moderator') return 'news';
+    } catch (e) {}
+    return 'home';
+  });
 
   // Site Logo & Favicon State - Live Synced with Firestore & LocalStorage
   const [siteLogo, setSiteLogoState] = useState<string>(() => {
@@ -387,7 +414,7 @@ export default function App() {
         pendingDonorsCount={pendingDonorsCount}
         pendingModeratorAppsCount={pendingModeratorAppsCount}
         onLogout={() => {
-          setUserRole('citizen');
+          updateUserRole('citizen');
           setActiveTab('home');
           addLog('লগআউট', 'সেশন শেষ করে নাগরিক মোডে ফিরে গেছেন।');
         }}
@@ -460,7 +487,7 @@ export default function App() {
             moderatorPermissions={moderatorPermissions}
             facebookSettings={facebookSettings}
             onLogout={() => {
-              setUserRole('citizen');
+              updateUserRole('citizen');
               setActiveTab('home');
               setRoutePath('/');
               window.history.pushState({}, '', '/');
@@ -475,14 +502,14 @@ export default function App() {
             siteLogo={siteLogo}
             onLoginSuccess={(matchedMod) => {
               if (matchedMod) {
-                setUserRole('moderator');
+                updateUserRole('moderator');
                 const perms = matchedMod.approvedPermissions || matchedMod.requestedPermissions;
                 if (perms) {
                   setModeratorPermissions(perms);
                 }
                 addLog('মডারেটর লগইন', `মডারেটর ${matchedMod.applicantName} সফলভাবে ড্যাশবোর্ডে প্রবেশ করেছেন।`);
               } else {
-                setUserRole('admin');
+                updateUserRole('admin');
                 addLog('এডমিন লগইন', 'এডমিন সফলভাবে ড্যাশবোর্ডে প্রবেশ করেছেন।');
               }
             }}
@@ -535,8 +562,9 @@ export default function App() {
         adminAccounts={adminAccounts}
         onOpenApplyModal={() => setIsModeratorModalOpen(true)}
         onSelectRole={(role, matchedModerator) => {
-          setUserRole(role);
+          updateUserRole(role);
           if (role === 'moderator') {
+            setActiveTab('news');
             setRoutePath('#moderator');
             window.history.pushState({}, '', '#moderator');
             if (matchedModerator) {
@@ -546,9 +574,11 @@ export default function App() {
               }
             }
           } else if (role === 'admin') {
+            setActiveTab('map3d');
             setRoutePath('#admin');
             window.history.pushState({}, '', '#admin');
           } else {
+            setActiveTab('home');
             setRoutePath('/');
             window.history.pushState({}, '', '/');
           }
