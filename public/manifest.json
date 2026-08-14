@@ -19,32 +19,32 @@
   ],
   "icons": [
     {
-      "src": "/logo.jpg",
-      "type": "image/jpeg",
+      "src": "/icon-192.png",
+      "type": "image/png",
       "sizes": "192x192",
       "purpose": "any"
     },
     {
-      "src": "/logo.jpg",
-      "type": "image/jpeg",
+      "src": "/icon-512.png",
+      "type": "image/png",
       "sizes": "512x512",
       "purpose": "any"
     },
     {
-      "src": "/logo.jpg",
-      "type": "image/jpeg",
+      "src": "/icon-maskable-192.png",
+      "type": "image/png",
       "sizes": "192x192",
       "purpose": "maskable"
     },
     {
-      "src": "/logo.jpg",
-      "type": "image/jpeg",
+      "src": "/icon-maskable-512.png",
+      "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
     },
     {
-      "src": "/favicon.jpg",
-      "type": "image/jpeg",
+      "src": "/icon-96.png",
+      "type": "image/png",
       "sizes": "96x96",
       "purpose": "any"
     }
@@ -55,21 +55,62 @@
       "short_name": "জরুরি",
       "description": "হাসপাতাল, পুলিশ ও ফায়ার সার্ভিসের জরুরি নম্বর",
       "url": "/#emergency",
-      "icons": [{ "src": "/favicon.jpg", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "রক্তদাতা খুঁজুন",
       "short_name": "রক্তদাতা",
       "description": "মোড়েলগঞ্জের নিবন্ধিত রক্তদাতাদের তালিকা",
       "url": "/#blood",
-      "icons": [{ "src": "/favicon.jpg", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "জরুরি সেবা ও হটলাইন",
       "short_name": "সেবা",
       "description": "উপজেলা প্রশাসনের সকল অফিসিয়াল যোগাযোগ",
       "url": "/#services",
-      "icons": [{ "src": "/favicon.jpg", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "হ্যালো মোড়েলগঞ্জ ওয়েব ড্যাশবোর্ড"
+    },
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "হ্যালো মোড়েলগঞ্জ মোবাইল অ্যাপ ইন্টারফেস"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.hellomorrelgonj.app",
+      "id": "com.hellomorrelgonj.app"
     }
   ],
   "prefer_related_applications": false
